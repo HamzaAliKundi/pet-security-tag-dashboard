@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useResetPasswordMutation } from "../../apis/auth";
-import { FiArrowLeft, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiArrowLeft } from "react-icons/fi";
 
 const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -73,10 +73,12 @@ const ResetPassword = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-5 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-2.5 text-gray-500"
                   onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  style={{ position: 'absolute', right: 12, top: 16 }}
                 >
-                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                  {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
               {errors.password && (
@@ -103,10 +105,12 @@ const ResetPassword = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-5 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-2.5 text-gray-500"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex={-1}
+                  style={{ position: 'absolute', right: 12, top: 16 }}
                 >
-                  {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                  {showConfirmPassword ? '🙈' : '👁️'}
                 </button>
               </div>
               {errors.confirmPassword && (

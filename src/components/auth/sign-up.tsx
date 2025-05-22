@@ -122,27 +122,29 @@ const Signup = () => {
               <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
                 Password*
               </label>
-              <input
-                type={passwordVisible ? "text" : "password"}
-                className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
-                placeholder="Enter your password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters"
-                  }
-                })}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-2.5 text-gray-500"
-                onClick={togglePasswordVisibility}
-                tabIndex={-1}
-                style={{ position: 'absolute', right: 12, top: 38 }}
-              >
-                {passwordVisible ? '🙈' : '👁️'}
-              </button>
+              <div className="relative">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
+                  placeholder="Enter your password"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters"
+                    }
+                  })}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-2.5 text-gray-500"
+                  onClick={togglePasswordVisibility}
+                  tabIndex={-1}
+                  style={{ position: 'absolute', right: 12, top: 20 }}
+                >
+                  {passwordVisible ? '🙈' : '👁️'}
+                </button>
+              </div>
               {errors.password && (
                 <span className="text-red-500 text-xs mt-1">
                   {errors.password.message}
