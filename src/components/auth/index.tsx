@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useLoginMutation } from "../../apis/auth";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [login] = useLoginMutation();
   const navigate = useNavigate();
@@ -16,14 +14,10 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const togglePasswordVisibility = () => setPasswordVisible(prev => !prev);
-
   const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
       const res: any = await login(data);
-      console.log(res);
-      
       if (res?.data?.status === 200) {
         localStorage.setItem("token", res?.data?.token);
         toast.success(res?.data?.message);
@@ -37,86 +31,95 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-8">
-          Welcome Back
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="w-full max-w-[650px] space-y-4">
+        {/* Header */}
+        <div className="text-start space-y-4">
+          <h1 className="font-helvetica-neue font-medium text-[32px] leading-[100%] text-[#05131D] capitalize">
+            Login Form
+          </h1>
+          <p className="font-helvetica-neue font-normal text-base leading-[140%] tracking-[-0.02em] text-[#05131D] capitalize">
+            Welcome to Digital Tails 🐾<br />
+            Please login or create an account to manage your pet's profile. 🐶🐱
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Email Input */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              defaultValue="hamza.alee83@gmail.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              {...register("email", { 
-                required: true,
-                pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i 
-              })}
-            />
-            {errors.email && (
-              <span className="text-red-500 text-xs mt-1">Valid email is required</span>
-            )}
-          </div>
+        {/* Login Form */}
+        <div className="bg-white rounded-lg px-2 md:px-8 py-4 md:py-8 space-y-4">
+          <h2 className="font-helvetica-neue font-medium text-2xl leading-[100%] text-center capitalize">
+            Login
+          </h2>
 
-          {/* Password Input */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Password
-            </label>
-            <div className="relative">
+          <form className="space-y-6 mb-12" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-2">
+              <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
+                Email*
+              </label>
               <input
-                type={passwordVisible ? "text" : "password"}
-                defaultValue="qwerty123"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="email"
+                className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
+                placeholder="Enter your email"
+                {...register("email", {
+                  required: true,
+                  pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                })}
+              />
+              {errors.email && (
+                <span className="text-red-500 text-xs mt-1">Valid email is required</span>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
+                Password*
+              </label>
+              <input
+                type="password"
+                className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
+                placeholder="Enter your password"
                 {...register("password", { required: true })}
               />
-              <button 
-                type="button"
-                className="absolute right-3 top-2.5 text-gray-500"
-                onClick={togglePasswordVisibility}
-              >
-                {passwordVisible ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
-              </button>
+              {errors.password && (
+                <span className="text-red-500 text-xs mt-1">Password is required</span>
+              )}
             </div>
-            <div className="mt-2">
-              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
-                Forgot Password?
+
+            <div className="text-right">
+              <Link to="/forgot-password" className="font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
+                Forgot your password?
               </Link>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging In...
-              </div>
-            ) : (
-              "Login"
-            )}
-          </button>
+            <button
+              type="submit"
+              className="w-full h-[56px] bg-[#4CB2E2] text-[#05131D] rounded-lg px-6 py-2.5 hover:bg-[#3da1d1] transition-colors font-bold flex items-center justify-center"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#05131D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Logging In...
+                </>
+              ) : (
+                "Login"
+              )}
+            </button>
+          </form>
 
-          <div className="text-center">
-            <p className="text-gray-600 text-sm">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-blue-600 hover:text-blue-800">
-                Sign up
-              </Link>
+          <div className="text-center space-y-4 !mt-10">
+            <p className="font-helvetica-neue font-[500] text-base leading-[100%] tracking-[0%] text-center capitalize">
+              Don't have an account?
             </p>
+            <div className="flex justify-center">
+              <Link to="/signup" className="w-[198px] h-[56px] font-medium border border-[#4CB2E2] bg-[#4CB2E2] text-[#05131D] rounded-lg px-6 py-2.5 transition-colors flex items-center justify-center">
+                Register
+              </Link>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
