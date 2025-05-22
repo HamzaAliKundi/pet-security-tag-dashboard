@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [login] = useLoginMutation();
   const navigate = useNavigate();
   const {
@@ -13,6 +14,8 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
+  const togglePasswordVisibility = () => setPasswordVisible((prev) => !prev);
 
   const onSubmit = async (data: any) => {
     setIsLoading(true);
@@ -73,12 +76,23 @@ const Login = () => {
               <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
                 Password*
               </label>
-              <input
-                type="password"
-                className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
-                placeholder="Enter your password"
-                {...register("password", { required: true })}
-              />
+              <div className="relative">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
+                  placeholder="Enter your password"
+                  {...register("password", { required: true })}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 text-gray-500"
+                  onClick={togglePasswordVisibility}
+                  tabIndex={-1}
+                  style={{ position: 'absolute', right: 16, top: 18 }}
+                >
+                  {passwordVisible ? '🙈' : '👁️'}
+                </button>
+              </div>
               {errors.password && (
                 <span className="text-red-500 text-xs mt-1">Password is required</span>
               )}
