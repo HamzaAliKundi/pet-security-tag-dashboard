@@ -9,9 +9,9 @@ interface SideNavProps {
 
 const navItems = [
   { section: "ACTIONS", items: [
-    { name: "Overview", path: "/home", icon: FiGrid },
+    { name: "Overview", path: "/overview", icon: FiGrid },
     { name: "Pets", path: "/pets", icon: FiUser },
-    { name: "Contact Support", path: "/support", icon: FiHeadphones },
+    { name: "Contact Support", path: "/contact", icon: FiHeadphones },
   ]},
   { section: "GENERAL", items: [
     { name: "Payment History", path: "/payments", icon: FiCreditCard },
@@ -97,7 +97,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
                         <NavLink
                           to={item.path}
                           className={({ isActive: navActive }) => {
-                            const base = "flex items-center gap-3 rounded-lg transition-all duration-200 font-[Afacad,sans-serif] font-medium text-[16px]";
+                            const base = "flex items-center gap-3 rounded-[100px] transition-all duration-200 font-[Afacad,sans-serif] font-medium text-[16px]";
                             const active = "bg-white text-[#4CB2E2]";
                             const inactive = "text-white hover:bg-white/10";
                             const activeStyle = navActive

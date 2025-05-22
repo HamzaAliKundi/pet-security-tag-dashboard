@@ -13,6 +13,10 @@ import Login from "./components/auth";
 import EmailVerificationSent from "./components/auth/email-verification-sent";
 import EmailVerification from "./components/auth/email-verification";
 import OverviewPage from "./pages/overview";
+import PetsPage from "./pages/pets";
+import ContactPage from "./pages/contact";
+import PaymentPage from "./pages/payment";
+import SettingsPage from "./pages/settings";
 
 function App() {
   return (
@@ -36,6 +40,10 @@ function App() {
         <Route element={<ProtectedRoutes />}>
           <Route path="/" element={<Layout />}>
             <Route path="/overview" element={<OverviewPage />} />
+            <Route path="/pets" element={<PetsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/payments" element={<PaymentPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Routes>
