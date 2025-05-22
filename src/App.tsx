@@ -9,10 +9,10 @@ import ResetPassword from "./components/auth/reset-password";
 import ForgotPassword from "./components/auth/forgot-password";
 import PasswordResetEmailSent from "./components/auth/password-reset-email-sent";
 import PasswordChangedSuccess from "./components/auth/password-changed-success";
-import HomePage from "./pages/home";
 import Login from "./components/auth";
 import EmailVerificationSent from "./components/auth/email-verification-sent";
 import EmailVerification from "./components/auth/email-verification";
+import OverviewPage from "./pages/overview";
 
 function App() {
   return (
@@ -35,7 +35,7 @@ function App() {
 
         <Route element={<ProtectedRoutes />}>
           <Route path="/" element={<Layout />}>
-            <Route path="/home" element={<HomePage />} />
+            <Route path="/overview" element={<OverviewPage />} />
           </Route>
         </Route>
       </Routes>
