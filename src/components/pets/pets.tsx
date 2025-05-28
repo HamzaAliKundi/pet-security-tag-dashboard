@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 
 const pets = [
   {
@@ -44,11 +45,11 @@ const Pets = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
+              <Link to="/edit-pet"  className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
                 {/* Pencil Icon */}
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M16.862 5.487l1.65-1.65a1.5 1.5 0 1 1 2.121 2.122l-1.65 1.65M15.44 6.91L5.5 16.85v2.65h2.65l9.94-9.94-2.65-2.65z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Edit information
-              </button>
+              </Link>
               <button className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
                 {/* Eye Icon */}
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"/><circle cx="12" cy="12" r="3"/></svg>

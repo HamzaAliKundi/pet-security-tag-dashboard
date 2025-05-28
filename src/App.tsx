@@ -18,6 +18,7 @@ import ContactPage from "./pages/contact";
 import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
 import Order from "./components/order/order";
+import EditPet from "./components/pets/edit-pet/edit-pet";
 
 function App() {
   return (
@@ -44,6 +45,8 @@ function App() {
             <Route path="/order" element={<Order />} />
             
             <Route path="/pets" element={<PetsPage />} />
+            <Route path="/edit-pet" element={<EditPet />} />
+
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/payments" element={<PaymentPage />} />
             <Route path="/settings" element={<SettingsPage />} />
