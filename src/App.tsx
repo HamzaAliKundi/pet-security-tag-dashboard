@@ -17,6 +17,7 @@ import PetsPage from "./pages/pets";
 import ContactPage from "./pages/contact";
 import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
+import Order from "./components/order/order";
 
 function App() {
   return (
@@ -40,6 +41,8 @@ function App() {
         <Route element={<ProtectedRoutes />}>
           <Route path="/" element={<Layout />}>
             <Route path="/overview" element={<OverviewPage />} />
+            <Route path="/order" element={<Order />} />
+            
             <Route path="/pets" element={<PetsPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/payments" element={<PaymentPage />} />

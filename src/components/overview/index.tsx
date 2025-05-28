@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Overview = () => {
   return (
@@ -64,13 +65,13 @@ const Overview = () => {
               Need to add another pet to your Digital Tails account? We're excited to welcome them on board!
             </div>
           </div>
-          <button className="flex items-center w-full sm:w-[111px] h-[32px] px-[11.29px] py-[4.34px] rounded-[6.95px] border border-[#4CB2E2] text-[#4CB2E2] font-afacad font-semibold text-[11px] sm:text-[12px] leading-[25.18px] tracking-[0.35px] bg-white mt-2">
+          <Link to="/order" className="flex items-center w-full sm:w-[111px] h-[32px] px-[11.29px] py-[4.34px] rounded-[6.95px] border border-[#4CB2E2] text-[#4CB2E2] font-afacad font-semibold text-[11px] sm:text-[12px] leading-[25.18px] tracking-[0.35px] bg-white mt-2">
             {/* Replace with your SVG/icon */}
             <svg width="23.4" height="21.7" className="pr-[7.81px]" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 22">
               <path d="M5 11h14M13 7l6 4-6 4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Order Tags
-          </button>
+          </Link>
         </div>
       </div>
 
