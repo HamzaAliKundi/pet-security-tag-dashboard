@@ -2,42 +2,42 @@ import React from 'react'
 
 const Overview = () => {
   return (
-    <>
-    <div className="w-full max-w-[750px] min-h-[110px] flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[11.72px] shadow-lg px-4 sm:px-6 py-4 sm:py-[18px] box-border">
-      <div className="flex flex-col justify-center h-full mb-4 sm:mb-0 w-full sm:w-auto">
-        <div className="flex items-center space-x-2">
-          <span className="font-afacad font-semibold text-[20px] sm:text-[30px] leading-[26px] sm:leading-[36px] tracking-[0.32px] text-[#313131]">
-            Your Active Tag(s):
-          </span>
-          <span className="font-afacad font-semibold text-[20px] sm:text-[30px] leading-[26px] sm:leading-[36px] tracking-[0.32px] text-[#313131]">
-            2
+    <div className="flex flex-col items-center w-full">
+      <div className="w-full max-w-[750px] min-h-[110px] flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[11.72px] shadow-lg px-4 sm:px-6 py-4 sm:py-[18px] box-border">
+        <div className="flex flex-col justify-center h-full mb-4 sm:mb-0 w-full sm:w-auto">
+          <div className="flex items-center space-x-2">
+            <span className="font-afacad font-semibold text-[20px] sm:text-[30px] leading-[26px] sm:leading-[36px] tracking-[0.32px] text-[#313131]">
+              Your Active Tag(s):
+            </span>
+            <span className="font-afacad font-semibold text-[20px] sm:text-[30px] leading-[26px] sm:leading-[36px] tracking-[0.32px] text-[#313131]">
+              2
+            </span>
+          </div>
+          <span className="font-afacad font-normal text-[12px] sm:text-[16px] leading-[100%] tracking-[0.4px] text-[#636363] mt-1">
+            Your pets' profiles missing alerts.
           </span>
         </div>
-        <span className="font-afacad font-normal text-[12px] sm:text-[16px] leading-[100%] tracking-[0.4px] text-[#636363] mt-1">
-          Your pets' profiles missing alerts.
-        </span>
-      </div>
-      <button
-        className="flex items-center justify-center w-full sm:w-[160px] h-[38px] px-[12px] rounded-[8px] bg-[#4CB2E2] border-none text-white font-afacad font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[0.4px] cursor-pointer gap-2 whitespace-nowrap self-center mt-4 sm:mt-0"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-8 h-8 sm:w-10 sm:h-10 md:min-w-4 md:min-h-4 mr-2"
+        <button
+          className="flex items-center justify-center w-full sm:w-[160px] h-[38px] px-[12px] rounded-[8px] bg-[#4CB2E2] border-none text-white font-afacad font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[0.4px] cursor-pointer gap-2 whitespace-nowrap self-center mt-4 sm:mt-0"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 12C3.5 7.5 7.5 4.5 12 4.5s8.5 3 9.75 7.5c-1.25 4.5-5.25 7.5-9.75 7.5s-8.5-3-9.75-7.5z"
-          />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        View Active Pets
-      </button>
-    </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-8 h-8 sm:w-10 sm:h-10 md:min-w-4 md:min-h-4 mr-2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.25 12C3.5 7.5 7.5 4.5 12 4.5s8.5 3 9.75 7.5c-1.25 4.5-5.25 7.5-9.75 7.5s-8.5-3-9.75-7.5z"
+            />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          View Active Pets
+        </button>
+      </div>
 
       <div className="w-full max-w-[750px] h-auto flex flex-col md:flex-row justify-between gap-4 mt-6">
         {/* Pet Profile Card */}
@@ -89,8 +89,7 @@ const Overview = () => {
           </button>
         </div>
       </div>
-
-    </>
+    </div>
   )
 }
 
