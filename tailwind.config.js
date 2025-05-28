@@ -4,6 +4,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        'afacad': ['Afacad', 'sans-serif'],
         'space-grotesk': ['"Space Grotesk"', 'sans-serif']
       }
     },
