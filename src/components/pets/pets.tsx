@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom';
+import ReplacementTagModal from './ReplacementTagModal';
 
 const pets = [
   {
@@ -25,6 +26,30 @@ const pets = [
 ];
 
 const Pets = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState<number | null>(null);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+    setSelectedPetId(null);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPetId(null);
+  };
+
+  const handleSelectPet = (id: number) => {
+    setSelectedPetId(id);
+  };
+
+  const handleOrder = () => {
+    // TODO: Implement order logic
+    setIsModalOpen(false);
+    setSelectedPetId(null);
+    // Optionally show a success message
+  };
+
   return (
     <div className="w-full max-w-[750px] mx-auto px-2 sm:px-0 py-6">
       {/* Header */}
@@ -55,7 +80,7 @@ const Pets = () => {
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"/><circle cx="12" cy="12" r="3"/></svg>
                 View {pet.name}'s page
               </button>
-              <button className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
+              <button className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto" onClick={() => { handleSelectPet(pet.id); handleOpenModal(); }}>
                 {/* Refresh Icon */}
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.07 19A9 9 0 1 1 21 12.93"/></svg>
                 Get replacement tag
@@ -77,6 +102,15 @@ const Pets = () => {
           Order more tags
         </button>
       </div>
+
+      <ReplacementTagModal
+        isOpen={isModalOpen}
+        pets={pets}
+        selectedPetId={selectedPetId}
+        onSelectPet={handleSelectPet}
+        onClose={handleCloseModal}
+        onOrder={handleOrder}
+      />
     </div>
   );
 };
