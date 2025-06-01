@@ -16,8 +16,8 @@ const ContactDetailsTab = () => {
         </button>
       </div>
       
-      {/* Table Container with proper scrolling */}
-      <div className="overflow-x-auto">
+      {/* Desktop view (hidden on mobile) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full min-w-[700px]">
           <thead className="bg-white sticky top-0 z-10">
             <tr className="text-[#B0B0B0] font-afacad text-[12px] sm:text-[13px] border-b border-[#E0E0E0]">
@@ -147,6 +147,132 @@ const ContactDetailsTab = () => {
                 </tr>
               </tbody>
         </table>
+      </div>
+      
+      {/* Mobile view (hidden on desktop) */}
+      <div className="md:hidden space-y-4">
+        {/* Owner Card */}
+        <div className="bg-white rounded-[8px] shadow-sm border border-[#E0E0E0] p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="font-afacad font-semibold text-[15px] text-[#222]">Owner</h3>
+              <p className="font-afacad text-[14px] text-[#636363] mt-1">65846924687</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center">
+                <span className="w-10 h-6 flex items-center bg-[#E6F6FE] rounded-full p-1 cursor-pointer">
+                  <span className="w-4 h-4 bg-[#4CB2E2] rounded-full shadow transform transition-transform duration-200 translate-x-4"></span>
+                </span>
+              </span>
+              <button 
+                onClick={() => setMenuOpen(!menuOpen)} 
+                className="p-2 rounded-full hover:bg-[#E6F6FE] transition-colors"
+              >
+                <svg width="20" height="20" fill="none" stroke="#222" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="6" r="1.5"/>
+                  <circle cx="12" cy="12" r="1.5"/>
+                  <circle cx="12" cy="18" r="1.5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p className="font-afacad text-[14px] text-[#222] mb-3">558 Manchester Road</p>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#4CB2E2] hover:bg-[#E6F6FE] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#FF4747] hover:bg-[#ffd6d6] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#FF4747" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+
+        {/* John Smith Card */}
+        <div className="bg-white rounded-[8px] shadow-sm border border-[#E0E0E0] p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="font-afacad font-semibold text-[15px] text-[#222]">John Smith</h3>
+              <p className="font-afacad text-[14px] text-[#636363] mt-1">+1-555-0123</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center">
+                <span className="w-10 h-6 flex items-center bg-[#E0E0E0] rounded-full p-1 cursor-pointer">
+                  <span className="w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200"></span>
+                </span>
+              </span>
+              <button className="p-2 rounded-full hover:bg-[#E6F6FE] transition-colors">
+                <svg width="20" height="20" fill="none" stroke="#222" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="6" r="1.5"/>
+                  <circle cx="12" cy="12" r="1.5"/>
+                  <circle cx="12" cy="18" r="1.5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p className="font-afacad text-[14px] text-[#222] mb-3">123 Oak Street, NY</p>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#4CB2E2] hover:bg-[#E6F6FE] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#FF4747] hover:bg-[#ffd6d6] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#FF4747" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+
+        {/* Sarah Johnson Card */}
+        <div className="bg-white rounded-[8px] shadow-sm border border-[#E0E0E0] p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="font-afacad font-semibold text-[15px] text-[#222]">Sarah Johnson</h3>
+              <p className="font-afacad text-[14px] text-[#636363] mt-1">+1-555-0456</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center">
+                <span className="w-10 h-6 flex items-center bg-[#E0E0E0] rounded-full p-1 cursor-pointer">
+                  <span className="w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200"></span>
+                </span>
+              </span>
+              <button className="p-2 rounded-full hover:bg-[#E6F6FE] transition-colors">
+                <svg width="20" height="20" fill="none" stroke="#222" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="6" r="1.5"/>
+                  <circle cx="12" cy="12" r="1.5"/>
+                  <circle cx="12" cy="18" r="1.5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p className="font-afacad text-[14px] text-[#222] mb-3">456 Pine Avenue, CA</p>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#4CB2E2] hover:bg-[#E6F6FE] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[#FF4747] hover:bg-[#ffd6d6] font-afacad text-[13px] rounded-[4px] transition-colors">
+              <svg width="14" height="14" fill="none" stroke="#FF4747" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 6h18M6 6v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
