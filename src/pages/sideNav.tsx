@@ -46,10 +46,10 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
         />
       )}
       <aside
-        className={`fixed z-40 top-0 left-0 h-[910px] w-[300px] bg-[#4CB2E2] flex flex-col items-center transition-transform duration-300 md:relative md:translate-x-0 md:z-0
+        className={`fixed z-40 top-0 left-0 h-screen w-[300px] bg-[#4CB2E2] flex flex-col transition-transform duration-300 md:relative md:translate-x-0 md:z-0
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
-        style={{ minHeight: 910, minWidth: 300 }}
+        style={{ minWidth: 300 }}
       >
         {/* Close button for mobile */}
         <button
