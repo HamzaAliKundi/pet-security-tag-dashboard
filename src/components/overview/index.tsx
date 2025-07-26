@@ -83,11 +83,13 @@ const Overview = () => {
           <div className="font-afacad font-normal text-[12px] sm:text-[14px] leading-[100%] tracking-[0.35px] text-[#636363] mb-5">
             Speak with a customer support whenever you need help with our Digital Tails mobile app.
           </div>
-          <button
-            className="w-full sm:w-[133px] h-[38px] max-w-[1400px] px-[12px] rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[14px] sm:text-[15px] leading-[100%] tracking-[0.4px]"
-          >
-            Contact Support
-          </button>
+          <Link
+  to="/contact"
+  className="w-full sm:w-[133px] h-[38px] max-w-[1400px] px-[12px] rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[14px] sm:text-[15px] leading-[100%] tracking-[0.4px] flex items-center justify-center"
+>
+  Contact Support
+</Link>
+
         </div>
       </div>
     </div>
