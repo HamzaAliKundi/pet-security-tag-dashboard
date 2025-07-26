@@ -6,7 +6,7 @@ import { useSignupMutation } from "../../apis/auth";
 
 interface SignupFormData {
   firstName: string;
-  lastName?: string;
+  lastName: string;
   email: string;
   password: string;
 }
@@ -28,9 +28,9 @@ const Signup = () => {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      // Only send firstName as 'name' to backend
       const payload = {
-        name: data.firstName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
       };
@@ -85,14 +85,19 @@ const Signup = () => {
 
             <div className="space-y-2">
               <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
-                Last Name (optional)
+                Last Name*
               </label>
               <input
                 type="text"
                 className="w-full h-[56px] px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CB2E2]"
-                placeholder="Enter your last name (optional)"
-                {...register("lastName")}
+                placeholder="Enter your last name"
+                {...register("lastName", { required: "Last name is required" })}
               />
+              {errors.lastName && (
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.lastName.message}
+                </span>
+              )}
             </div>
 
             <div className="space-y-2">
