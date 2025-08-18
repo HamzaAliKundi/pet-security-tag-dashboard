@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 
-const TAG_PRICE = 2.95;
+const TAG_PRICE = 0; // Tags are free
 const SHIPPING = 2.95;
 
 const Order = () => {
   const [quantity, setQuantity] = useState(1);
   const [petName, setPetName] = useState('');
 
-  const subtotal = (quantity * TAG_PRICE).toFixed(2);
-  const total = (quantity * TAG_PRICE + SHIPPING).toFixed(2);
+  const total = SHIPPING.toFixed(2);
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-[#fafbfc] to-[#f8fafd]">
@@ -23,7 +22,7 @@ const Order = () => {
         {/* How many tags */}
         <div className="mb-4">
           <div className="font-afacad font-semibold text-[16px] text-[#222] mb-1">How many tags do you need?</div>
-          <div className="font-afacad text-[13px] text-[#636363]">Dispatched today if you order in the next: <span className="font-semibold text-[#222]">2 hours, 13 minutes</span></div>
+          {/* <div className="font-afacad text-[13px] text-[#636363]">Dispatched today if you order in the next: <span className="font-semibold text-[#222]">2 hours, 13 minutes</span></div> */}
         </div>
         <hr className="my-4 border-[#E0E0E0]" />
 
@@ -64,11 +63,7 @@ const Order = () => {
         <div className="divide-y divide-[#E0E0E0] mb-6">
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#222]">
             <span>{quantity}x Digital Tails Tag</span>
-            <span>£{(quantity * TAG_PRICE).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#636363]">
-            <span>Subtotal</span>
-            <span>£{subtotal}</span>
+            <span className="text-green-600 font-semibold">FREE</span>
           </div>
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#636363]">
             <span>Shipping & Handling</span>
