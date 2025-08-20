@@ -46,7 +46,7 @@ function App() {
             <Route path="/order" element={<Order />} />
             
             <Route path="/pets" element={<PetsPage />} />
-            <Route path="/edit-pet" element={<EditPet />} />
+            <Route path="/edit-pet/:petId" element={<EditPet />} />
             <Route path="/view-pet/:id" element={<ViewPet />} />
 
             <Route path="/contact" element={<ContactPage />} />
