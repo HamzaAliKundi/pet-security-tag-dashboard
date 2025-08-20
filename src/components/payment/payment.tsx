@@ -1,14 +1,5 @@
 import React from 'react'
-
-const paymentData = [
-  { id: 1, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Pending' },
-  { id: 2, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Paid' },
-  { id: 3, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Paid' },
-  { id: 4, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Paid' },
-  { id: 5, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Pending' },
-  { id: 6, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Paid' },
-  { id: 7, invoice: 'INV 1744678412 - £0.00', date: '15/04/25', amount: '£0.00', status: 'Paid' },
-];
+import { useGetPetTagOrdersQuery } from '../../apis/user/users';
 
 // Custom CSS for 800px breakpoint
 // Add this to your global CSS (e.g., index.css):
@@ -18,6 +9,37 @@ const paymentData = [
 // }
 
 const Payment = () => {
+  // Fetch payment history from API
+  const { data: ordersData, isLoading, error } = useGetPetTagOrdersQuery({ page: 1, limit: 50 });
+  
+  // Use real orders data or fallback to empty array
+  const paymentData = ordersData?.orders || [];
+  
+  // Format date function
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB'); // DD/MM/YY format
+  };
+  
+  // Format amount function
+  const formatAmount = (amount: number) => {
+    return `€${amount.toFixed(2)}`;
+  };
+  
+  // Get status display info
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return { text: 'Paid', bgColor: 'bg-[#E7FFE7]', textColor: 'text-[#00B212]' };
+      case 'pending':
+        return { text: 'Pending', bgColor: 'bg-[#FFF8E7]', textColor: 'text-[#F5B700]' };
+      case 'failed':
+        return { text: 'Failed', bgColor: 'bg-[#FFE7E7]', textColor: 'text-[#FF4747]' };
+      default:
+        return { text: status, bgColor: 'bg-[#F0F0F0]', textColor: 'text-[#636363]' };
+    }
+  };
+
   return (
     <div className="max-w-full overflow-hidden">
       <div className="w-full max-w-[750px] mx-auto px-4 sm:px-0 py-6">
@@ -30,50 +52,73 @@ const Payment = () => {
             </svg>
             <span className="font-afacad font-semibold text-[16px] text-[#4CB2E2]">Payment History</span>
           </div>
-          <span className="font-afacad font-semibold text-[16px] text-[#636363]">07</span>
+          <span className="font-afacad font-semibold text-[16px] text-[#636363]">
+            {isLoading ? '...' : paymentData.length}
+          </span>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="font-afacad text-[15px] text-[#636363]">Loading payment history...</div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <div className="font-afacad text-[15px] text-red-600">Error loading payment history. Please try again.</div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && paymentData.length === 0 && (
+          <div className="text-center py-8">
+            <div className="font-afacad text-[15px] text-[#636363]">No payment history found.</div>
+          </div>
+        )}
+
         {/* Table: scrollable only on <=800px */}
-        <div className="w-full max-w-full overflow-x-auto">
-          <table className="w-full min-w-[800px] md:min-w-0">
+        {!isLoading && !error && paymentData.length > 0 && (
+          <div className="w-full max-w-full overflow-x-auto">
+            <table className="w-full min-w-[800px] md:min-w-0">
             <thead>
               <tr className="border-b border-[#E0E0E0]">
                 <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[30%]">INVOICE NO.</th>
                 <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[15%]">DATE</th>
                 <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[15%]">AMOUNT</th>
                 <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[20%]">STATUS</th>
-                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[20%]">ACTION</th>
+               
               </tr>
             </thead>
             <tbody>
-              {paymentData.map((payment) => (
-                <tr key={payment.id} className="border-b border-[#E0E0E0]">
-                  <td className="py-4 font-afacad text-[14px] text-[#222]">{payment.invoice}</td>
-                  <td className="py-4 font-afacad text-[14px] text-[#222]">{payment.date}</td>
-                  <td className="py-4 font-afacad text-[14px] text-[#222]">{payment.amount}</td>
-                  <td className="py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-afacad font-medium
-                      ${payment.status === 'Pending' 
-                        ? 'bg-[#FFF8E7] text-[#F5B700]' 
-                        : 'bg-[#E7FFE7] text-[#00B212]'
-                      }`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <button className="flex items-center gap-2 text-[#FF4747] font-afacad text-[14px] hover:opacity-80">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                      </svg>
-                      Download
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {paymentData.map((order) => {
+                const statusInfo = getStatusInfo(order.status);
+                return (
+                  <tr key={order._id} className="border-b border-[#E0E0E0]">
+                    <td className="py-4 font-afacad text-[14px] text-[#222]">
+                      {order.paymentIntentId}
+                    </td>
+                    <td className="py-4 font-afacad text-[14px] text-[#222]">
+                      {formatDate(order.createdAt)}
+                    </td>
+                    <td className="py-4 font-afacad text-[14px] text-[#222]">
+                      {formatAmount(order.totalCostEuro)}
+                    </td>
+                    <td className="py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-afacad font-medium ${statusInfo.bgColor} ${statusInfo.textColor}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {statusInfo.text}
+                      </span>
+                    </td>
+                  
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   )
