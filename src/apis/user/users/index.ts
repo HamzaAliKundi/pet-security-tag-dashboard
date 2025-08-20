@@ -36,3 +36,13 @@ export const {
   useGetSingleUserQuery,
   useUpdateSingleUserMutation
 } = userApi;
+
+// Export pet tag orders API
+export { petTagOrdersApi } from './petTagOrders';
+export {
+  useCreatePetTagOrderMutation,
+  useGetPetTagOrdersQuery,
+  useGetPetTagOrderQuery,
+  useUpdatePetTagOrderMutation,
+  useConfirmPaymentMutation,
+} from './petTagOrders';
