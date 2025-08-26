@@ -18,7 +18,8 @@ const Overview = () => {
             Your pets' profiles missing alerts.
           </span>
         </div>
-        <button
+        <Link
+          to="/pets"
           className="flex items-center justify-center w-full sm:w-[160px] h-[38px] px-[12px] rounded-[8px] bg-[#4CB2E2] border-none text-white font-afacad font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[0.4px] cursor-pointer gap-2 whitespace-nowrap self-center mt-4 sm:mt-0"
         >
           <svg
@@ -37,7 +38,7 @@ const Overview = () => {
             <circle cx="12" cy="12" r="3" />
           </svg>
           View Active Pets
-        </button>
+        </Link>
       </div>
 
       <div className="w-full max-w-[750px] h-auto flex flex-col md:flex-row justify-between gap-4 mt-6">

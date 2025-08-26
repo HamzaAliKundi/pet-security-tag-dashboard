@@ -158,13 +158,7 @@ const PaymentForm = ({
                 <option value="">Select tag color</option>
                 <option value="blue">Blue</option>
                 <option value="red">Red</option>
-                <option value="green">Green</option>
-                <option value="yellow">Yellow</option>
                 <option value="pink">Pink</option>
-                <option value="purple">Purple</option>
-                <option value="orange">Orange</option>
-                <option value="black">Black</option>
-                <option value="white">White</option>
               </select>
             </div>
 
