@@ -5,7 +5,12 @@ import { useConfirmSubscriptionPaymentMutation } from '../../apis/user/qrcode';
 import toast from 'react-hot-toast';
 
 // Get Stripe publishable key from environment
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISH_KEY || '');
+
+// Check if Stripe key is configured
+if (!import.meta.env.VITE_STRIPE_PUBLISH_KEY) {
+  console.warn('VITE_STRIPE_PUBLISH_KEY is not set in environment variables');
+}
 
 interface SubscriptionModalProps {
   qrCode: {
@@ -76,6 +81,8 @@ const SubscriptionForm: React.FC<{
     event.preventDefault();
 
     if (!stripe || !elements || !clientSecret) {
+      console.error('Stripe not ready:', { stripe: !!stripe, elements: !!elements, clientSecret: !!clientSecret });
+      toast.error('Payment system not ready. Please try again.');
       return;
     }
 
@@ -140,23 +147,38 @@ const SubscriptionForm: React.FC<{
 
         <form onSubmit={handlePaymentSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Card Details
+            <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
+              Payment Card*
             </label>
-            <div className="border border-gray-300 rounded-md p-3">
+            
+            {/* Stripe Card Element */}
+            <div className="border border-[#E0E0E0] rounded-[8px] p-3 bg-[#FAFAFA]">
               <CardElement
+                onReady={() => console.log('CardElement ready')}
+                onChange={(event) => console.log('CardElement changed:', event)}
                 options={{
                   style: {
                     base: {
                       fontSize: '16px',
-                      color: '#424770',
+                      color: '#222',
+                      fontFamily: 'Afacad, sans-serif',
                       '::placeholder': {
-                        color: '#aab7c4',
+                        color: '#636363',
                       },
+                      iconColor: '#4CB2E2',
+                    },
+                    invalid: {
+                      color: '#e53e3e',
+                      iconColor: '#e53e3e',
                     },
                   },
+                  hidePostalCode: true,
                 }}
               />
+            </div>
+            
+            <div className="mt-2 text-xs text-[#636363]">
+              Your card details are securely processed by Stripe
             </div>
           </div>
 
