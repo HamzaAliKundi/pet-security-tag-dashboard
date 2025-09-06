@@ -1,0 +1,281 @@
+import React, { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useConfirmSubscriptionPaymentMutation } from '../../apis/user/qrcode';
+import toast from 'react-hot-toast';
+
+// Get Stripe publishable key from environment
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+interface SubscriptionModalProps {
+  qrCode: {
+    id: string;
+    code: string;
+    assignedPetName?: string;
+  };
+  onSuccess: (subscriptionType: 'monthly' | 'yearly', petId?: string) => void;
+  onClose: () => void;
+}
+
+const SubscriptionForm: React.FC<{
+  qrCode: SubscriptionModalProps['qrCode'];
+  onSuccess: SubscriptionModalProps['onSuccess'];
+  onClose: SubscriptionModalProps['onClose'];
+}> = ({ qrCode, onSuccess, onClose }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [subscriptionType, setSubscriptionType] = useState<'monthly' | 'yearly'>('monthly');
+  const [loading, setLoading] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string>('');
+  const [clientSecret, setClientSecret] = useState<string>('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+
+  const [confirmSubscriptionPayment] = useConfirmSubscriptionPaymentMutation();
+
+  const pricing = {
+    monthly: { price: 4.99, label: 'Monthly', description: 'Billed every month' },
+    yearly: { price: 49.99, label: 'Yearly', description: 'Billed every year (2 months free!)' }
+  };
+
+  const handleSubscriptionSelect = async (type: 'monthly' | 'yearly') => {
+    setSubscriptionType(type);
+    setLoading(true);
+
+    try {
+      // This would call your backend to create a payment intent
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          qrCodeId: qrCode.id,
+          subscriptionType: type,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.payment) {
+        setPaymentIntentId(data.payment.paymentIntentId);
+        setClientSecret(data.payment.clientSecret);
+        setShowPaymentForm(true);
+      } else {
+        throw new Error(data.message || 'Failed to create payment intent');
+      }
+    } catch (error: any) {
+      console.error('Payment intent creation error:', error);
+      toast.error(error.message || 'Failed to initialize payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
+      return;
+    }
+
+    setLoading(true);
+
+    const cardElement = elements.getElement(CardElement);
+
+    if (!cardElement) {
+      toast.error('Card element not found');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Confirm payment with Stripe
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+        },
+      });
+
+      if (error) {
+        console.error('Payment confirmation error:', error);
+        toast.error(error.message || 'Payment failed');
+      } else if (paymentIntent.status === 'succeeded') {
+        // Confirm with backend
+        await confirmSubscriptionPayment({
+          qrCodeId: qrCode.id,
+          paymentIntentId: paymentIntent.id,
+          subscriptionType,
+        }).unwrap();
+
+        toast.success('Payment successful! QR code activated.');
+        onSuccess(subscriptionType);
+      }
+    } catch (error: any) {
+      console.error('Payment processing error:', error);
+      toast.error(error.data?.message || 'Payment processing failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showPaymentForm) {
+    return (
+      <div className="bg-white p-6">
+        <h3 className="text-lg font-semibold mb-4">Complete Payment</h3>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-medium">{pricing[subscriptionType].label} Subscription</p>
+              <p className="text-sm text-gray-600">{pricing[subscriptionType].description}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-blue-600">
+                €{pricing[subscriptionType].price}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handlePaymentSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Card Details
+            </label>
+            <div className="border border-gray-300 rounded-md p-3">
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: '16px',
+                      color: '#424770',
+                      '::placeholder': {
+                        color: '#aab7c4',
+                      },
+                    },
+                  },
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={() => setShowPaymentForm(false)}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              disabled={loading}
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              disabled={!stripe || loading}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Processing...' : `Pay €${pricing[subscriptionType].price}`}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-6">
+      <h3 className="text-lg font-semibold mb-4">Choose Your Subscription</h3>
+      
+      <div className="space-y-4 mb-6">
+        {Object.entries(pricing).map(([type, details]) => (
+          <div
+            key={type}
+            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+              subscriptionType === type
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={() => setSubscriptionType(type as 'monthly' | 'yearly')}
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    name="subscription"
+                    value={type}
+                    checked={subscriptionType === type}
+                    onChange={() => setSubscriptionType(type as 'monthly' | 'yearly')}
+                    className="mr-3 text-blue-600"
+                  />
+                  <div>
+                    <p className="font-medium">{details.label}</p>
+                    <p className="text-sm text-gray-600">{details.description}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-blue-600">€{details.price}</p>
+                {type === 'yearly' && (
+                  <p className="text-sm text-green-600">Save €10.89</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <h4 className="font-medium mb-2">What's Included:</h4>
+        <ul className="text-sm text-gray-600 space-y-1">
+          <li>✓ 24/7 QR code activation</li>
+          <li>✓ Lost pet notifications</li>
+          <li>✓ Contact form for finders</li>
+          <li>✓ Location sharing capability</li>
+          <li>✓ Multiple pet support</li>
+        </ul>
+      </div>
+
+      <div className="flex justify-between">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => handleSubscriptionSelect(subscriptionType)}
+          disabled={loading}
+          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Loading...' : `Continue with ${pricing[subscriptionType].label}`}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ qrCode, onSuccess, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Activate QR Code</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        
+        <Elements stripe={stripePromise}>
+          <SubscriptionForm qrCode={qrCode} onSuccess={onSuccess} onClose={onClose} />
+        </Elements>
+      </div>
+    </div>
+  );
+};
+
+export default SubscriptionModal;
