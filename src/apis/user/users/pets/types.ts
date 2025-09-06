@@ -9,6 +9,7 @@ export interface Pet {
   medication: string;
   allergies: string;
   notes: string;
+  image?: string;
   createdAt: string;
   updatedAt: string;
 }
