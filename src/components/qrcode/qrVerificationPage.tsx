@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGetQRVerificationDetailsQuery, useVerifyQRWithSubscriptionMutation } from '../../apis/user/qrcode';
+import { useGetQRVerificationDetailsQuery, useAutoVerifyQRCodeMutation, useVerifyQRWithSubscriptionMutation } from '../../apis/user/qrcode';
 import SubscriptionModal from './subscriptionModal';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,7 @@ const QRVerificationPage: React.FC = () => {
     skip: !code,
   });
 
+  const [autoVerifyQRCode] = useAutoVerifyQRCodeMutation();
   const [verifyQRCode] = useVerifyQRWithSubscriptionMutation();
 
   useEffect(() => {
@@ -30,6 +31,9 @@ const QRVerificationPage: React.FC = () => {
         // User is not logged in - redirect to login
         toast.error('Please log in to verify this QR code');
         navigate('/', { state: { redirectTo: `/qr/verify/${code}` } });
+      } else if (!qrDetails.isVerified && qrDetails.canAutoVerify) {
+        // User is logged in, QR needs verification, and user has active subscription
+        handleAutoVerification();
       } else if (!qrDetails.isVerified) {
         // User is logged in and QR needs verification - show subscription modal
         setShowSubscriptionModal(true);
@@ -39,6 +43,27 @@ const QRVerificationPage: React.FC = () => {
       }
     }
   }, [qrDetails, navigate, code]);
+
+  const handleAutoVerification = async () => {
+    try {
+      if (!qrDetails?.qrCode?.id) {
+        toast.error('QR code information not available');
+        return;
+      }
+
+      const result = await autoVerifyQRCode({
+        qrCodeId: qrDetails.qrCode.id,
+      }).unwrap();
+
+      toast.success('QR code verified automatically with your existing subscription!');
+      navigate('/overview');
+    } catch (error: any) {
+      console.error('Auto-verification error:', error);
+      toast.error(error.data?.message || 'Failed to auto-verify QR code');
+      // Fallback to showing subscription modal
+      setShowSubscriptionModal(true);
+    }
+  };
 
   const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly', petId?: string) => {
     try {
@@ -127,16 +152,49 @@ const QRVerificationPage: React.FC = () => {
                 {qrDetails.qrCode.assignedPetName && (
                   <p><span className="font-medium">Pet:</span> {qrDetails.qrCode.assignedPetName}</p>
                 )}
+                {qrDetails.subscription && (
+                  <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-green-800 text-xs">
+                      <span className="font-medium">Active Subscription:</span> {qrDetails.subscription.type} 
+                      (expires {new Date(qrDetails.subscription.endDate).toLocaleDateString()})
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="text-center">
-              <button
-                onClick={() => setShowSubscriptionModal(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Activate with Subscription
-              </button>
+              {qrDetails.canAutoVerify ? (
+                <div className="space-y-3">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-green-800 text-sm">
+                      <span className="font-medium">Great news!</span> You already have an active subscription. 
+                      This tag can be verified automatically without additional payment.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleAutoVerification}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Verify with Existing Subscription
+                  </button>
+                  <p className="text-gray-500 text-xs">
+                    Or <button 
+                      onClick={() => setShowSubscriptionModal(true)}
+                      className="text-blue-600 hover:text-blue-700 underline"
+                    >
+                      purchase a new subscription
+                    </button>
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowSubscriptionModal(true)}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Activate with Subscription
+                </button>
+              )}
             </div>
           </div>
         </div>

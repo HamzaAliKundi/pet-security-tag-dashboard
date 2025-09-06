@@ -22,6 +22,18 @@ export const qrcodeApi = createApi({
       }),
     }),
 
+    // Auto-verify QR code if user has active subscription
+    autoVerifyQRCode: builder.mutation<any, {
+      qrCodeId: string;
+    }>({
+      query: (data) => ({
+        url: "/qr/auto-verify",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['QRCode', 'Subscription'],
+    }),
+
     // Verify QR code with subscription (authenticated)
     verifyQRWithSubscription: builder.mutation<any, {
       qrCodeId: string;
@@ -74,6 +86,7 @@ export const qrcodeApi = createApi({
 
 export const {
   useGetQRVerificationDetailsQuery,
+  useAutoVerifyQRCodeMutation,
   useVerifyQRWithSubscriptionMutation,
   useConfirmSubscriptionPaymentMutation,
   useGetUserSubscriptionsQuery,
