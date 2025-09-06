@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLoginMutation } from "../../apis/auth";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [login] = useLoginMutation();
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     register,
     handleSubmit,
@@ -24,7 +25,14 @@ const Login = () => {
       if (res?.data?.status === 200) {
         localStorage.setItem("token", res?.data?.token);
         toast.success(res?.data?.message);
-        navigate("/overview");
+        
+        // Check if there's a redirect URL from QR verification
+        const redirectTo = (location.state as any)?.redirectTo;
+        if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate("/overview");
+        }
       } else toast.error(res?.error?.data?.message ?? "Invalid credentials");
     } catch (error) {
       toast.error("An error occurred during login");

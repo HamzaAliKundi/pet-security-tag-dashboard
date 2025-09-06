@@ -19,16 +19,22 @@ const QRVerificationPage: React.FC = () => {
 
   useEffect(() => {
     if (qrDetails) {
+      // Check if user is logged in (has token)
+      const token = localStorage.getItem('token');
+      
       if (qrDetails.isVerified && qrDetails.hasActiveSubscription) {
         // Already verified with active subscription
         toast.success('QR code is already verified and active!');
         navigate('/overview');
-      } else if (!qrDetails.isVerified && qrDetails.requiresLogin) {
-        // Need to login first
+      } else if (!token) {
+        // User is not logged in - redirect to login
         toast.error('Please log in to verify this QR code');
         navigate('/', { state: { redirectTo: `/qr/verify/${code}` } });
+      } else if (!qrDetails.isVerified) {
+        // User is logged in and QR needs verification - show subscription modal
+        setShowSubscriptionModal(true);
       } else {
-        // Show subscription modal
+        // Fallback case
         setShowSubscriptionModal(true);
       }
     }
