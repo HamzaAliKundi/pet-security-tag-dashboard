@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom';
 import ReplacementTagModal from './ReplacementTagModal';
+import ViewPetModal from './ViewPetModal';
 import { useGetUserPetsQuery } from '../../apis/user/users';
 
 // Mock pets for replacement tag modal (keeping original structure)
@@ -30,6 +31,8 @@ const mockPets = [
 const Pets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedPetForView, setSelectedPetForView] = useState<any>(null);
   
   // Fetch pets from API
   const { data: petsData, isLoading, error } = useGetUserPetsQuery({ page: 1, limit: 10 });
@@ -56,6 +59,16 @@ const Pets = () => {
     setIsModalOpen(false);
     setSelectedPetId(null);
     // Optionally show a success message
+  };
+
+  const handleViewPet = (pet: any) => {
+    setSelectedPetForView(pet);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedPetForView(null);
   };
 
   return (
@@ -90,7 +103,7 @@ const Pets = () => {
         {pets.map((pet) => (
           <div key={pet._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-4 py-4 gap-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <img src="/overview/cat.svg" alt={pet.petName} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
+              <img src={pet.image || "/overview/cat.svg"} alt={pet.petName} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
               <div>
                 <div className="font-afacad text-[13px] text-[#636363]">Pet's name</div>
                 <div className="font-afacad font-semibold text-[16px] text-[#222]">{pet.petName}</div>
@@ -102,11 +115,11 @@ const Pets = () => {
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M16.862 5.487l1.65-1.65a1.5 1.5 0 1 1 2.121 2.122l-1.65 1.65M15.44 6.91L5.5 16.85v2.65h2.65l9.94-9.94-2.65-2.65z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Edit information
               </Link>
-              {/* <Link to={`/view-pet/${pet._id}`} className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
-                
-                <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"/><circle cx="12" cy="12" r="3"/></svg>
-                View {pet.petName}'s page
-              </Link> */}
+              <button onClick={() => handleViewPet(pet)} className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto hover:bg-[#d6f0fd] transition">
+                {/* Eye Icon */}
+                <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View {pet.petName}'s details
+              </button>
               <Link to="/order" className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
                 {/* Refresh Icon */}
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.07 19A9 9 0 1 1 21 12.93"/></svg>
@@ -137,6 +150,12 @@ const Pets = () => {
         onSelectPet={handleSelectPet}
         onClose={handleCloseModal}
         onOrder={handleOrder}
+      />
+      
+      <ViewPetModal
+        isOpen={isViewModalOpen}
+        pet={selectedPetForView}
+        onClose={handleCloseViewModal}
       />
     </div>
   );

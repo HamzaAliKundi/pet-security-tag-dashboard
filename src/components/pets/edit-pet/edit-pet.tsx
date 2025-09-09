@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetPetQuery, useUpdatePetMutation } from '../../../apis/user/users';
+import toast from 'react-hot-toast';
 
 const EditPet = () => {
   const { petId } = useParams<{ petId: string }>();
@@ -13,6 +14,9 @@ const EditPet = () => {
   const [allergies, setAllergies] = useState('');
   const [medication, setMedication] = useState('');
   const [notes, setNotes] = useState('');
+  const [image, setImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   
   // Fetch pet data - only if petId exists
@@ -32,8 +36,58 @@ const EditPet = () => {
       setMedication(pet.medication);
       setAllergies(pet.allergies);
       setNotes(pet.notes);
+      setImage(pet.image || null);
     }
   }, [petData]);
+
+  // Handle image file selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+      setSelectedFile(file);
+      // Preview the selected image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload image function
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/pets/${petId}/upload-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        return data.imageUrl;
+      } else {
+        throw new Error(data.message || 'Failed to upload image');
+      }
+    } catch (error: any) {
+      console.error('Image upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+      return null;
+    }
+  };
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +123,18 @@ const EditPet = () => {
     try {
       setUpdateError(null); // Clear any previous errors
       
+      // Upload image first if a new one is selected
+      if (selectedFile) {
+        setIsUploadingImage(true);
+        const uploadedImageUrl = await uploadImage(selectedFile);
+        if (!uploadedImageUrl) {
+          setIsUploadingImage(false);
+          return; // Stop if image upload failed
+        }
+        setIsUploadingImage(false);
+        toast.success('Image uploaded successfully!');
+      }
+      
       const result = await updatePet({
         petId,
         petData: {
@@ -83,12 +149,14 @@ const EditPet = () => {
       }).unwrap();
       
       console.log('Update successful:', result); // Debug log
+      toast.success('Pet information updated successfully!');
       
       // Navigate back to pets page
       navigate('/pets');
     } catch (error: any) {
       console.error('Failed to update pet:', error);
       setUpdateError(error?.data?.message || 'Failed to update pet. Please try again.');
+      setIsUploadingImage(false);
     }
   };
 
@@ -158,6 +226,42 @@ const EditPet = () => {
 
           {/* Form Grid with lines after each row */}
           <form onSubmit={handleSubmit}>
+            {/* Pet Image Upload */}
+            <div className="mb-6">
+              <label className="block font-afacad font-bold text-[14px] text-[#636363] mb-2">Pet Image</label>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 bg-gray-100 rounded-full overflow-hidden border-2 border-[#E0E0E0]">
+                  {image ? (
+                    <img 
+                      src={image} 
+                      alt="Pet" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange}
+                    className="w-full rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 font-afacad text-[14px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#4CB2E2] file:text-white file:text-sm hover:file:bg-[#3da1d1]"
+                    disabled={isUploadingImage}
+                  />
+                  <p className="text-xs text-[#636363] mt-1">Upload a clear photo of your pet (max 5MB)</p>
+                </div>
+              </div>
+            </div>
+            
+            <hr className="border-[#E0E0E0] mb-6" />
+
             {/* Row 1: Name & Breed */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div>
@@ -209,10 +313,15 @@ const EditPet = () => {
              <div className="flex justify-end mt-8">
                <button 
                  type="submit" 
-                 disabled={isUpdating}
+                 disabled={isUpdating || isUploadingImage}
                  className="flex items-center gap-2 px-6 py-3 rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-medium text-[15px] shadow-sm hover:bg-[#3a9bc8] transition disabled:opacity-50 disabled:cursor-not-allowed"
                >
-                 {isUpdating ? (
+                 {isUploadingImage ? (
+                   <>
+                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                     Uploading image...
+                   </>
+                 ) : isUpdating ? (
                    <>
                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                      Saving...

@@ -20,6 +20,7 @@ import SettingsPage from "./pages/settings";
 import Order from "./components/order/order";
 import EditPet from "./components/pets/edit-pet/edit-pet";
 import ViewPet from "./components/pets/viewPet";
+import QRVerificationPage from "./components/qrcode/qrVerificationPage";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/verify-email-sent" element={<EmailVerificationSent />} />
           <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/verification-success" element={<VerificationSuccess />} />
+          <Route path="/qr/verify/:code" element={<QRVerificationPage />} />
         </Route>
 
         <Route element={<ProtectedRoutes />}>
