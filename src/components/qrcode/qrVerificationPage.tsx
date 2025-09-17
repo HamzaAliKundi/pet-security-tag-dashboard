@@ -74,7 +74,7 @@ const QRVerificationPage: React.FC = () => {
     }
   };
 
-  const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly', petId?: string) => {
+  const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly' | 'lifetime', petId?: string) => {
     try {
       if (!qrDetails?.qrCode?.id) {
         toast.error('QR code information not available');

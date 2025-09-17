@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import SubscriptionCard from '../subscription/subscriptionCard'
 
 const Overview = () => {
   return (
@@ -39,6 +40,11 @@ const Overview = () => {
           </svg>
           View Active Pets
         </Link>
+      </div>
+
+      {/* Subscription Card */}
+      <div className="w-full max-w-[750px] mt-6">
+        <SubscriptionCard />
       </div>
 
       <div className="w-full max-w-[750px] h-auto flex flex-col md:flex-row justify-between gap-4 mt-6">

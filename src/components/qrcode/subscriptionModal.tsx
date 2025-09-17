@@ -18,7 +18,7 @@ interface SubscriptionModalProps {
     code: string;
     assignedPetName?: string;
   };
-  onSuccess: (subscriptionType: 'monthly' | 'yearly', petId?: string) => void;
+  onSuccess: (subscriptionType: 'monthly' | 'yearly' | 'lifetime', petId?: string) => void;
   onClose: () => void;
 }
 
@@ -29,7 +29,7 @@ const SubscriptionForm: React.FC<{
 }> = ({ qrCode, onSuccess, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const [subscriptionType, setSubscriptionType] = useState<'monthly' | 'yearly'>('monthly');
+  const [subscriptionType, setSubscriptionType] = useState<'monthly' | 'yearly' | 'lifetime'>('monthly');
   const [loading, setLoading] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string>('');
   const [clientSecret, setClientSecret] = useState<string>('');
@@ -38,11 +38,12 @@ const SubscriptionForm: React.FC<{
   const [confirmSubscriptionPayment] = useConfirmSubscriptionPaymentMutation();
 
   const pricing = {
-    monthly: { price: 4.99, label: 'Monthly', description: 'Billed every month' },
-    yearly: { price: 49.99, label: 'Yearly', description: 'Billed every year (2 months free!)' }
+    monthly: { price: 2.75, label: 'Monthly', description: 'Billed every month' },
+    yearly: { price: 19.99, label: 'Yearly', description: 'Billed every year' },
+    lifetime: { price: 99.00, label: 'Lifetime', description: 'One-time payment' }
   };
 
-  const handleSubscriptionSelect = async (type: 'monthly' | 'yearly') => {
+  const handleSubscriptionSelect = async (type: 'monthly' | 'yearly' | 'lifetime') => {
     setSubscriptionType(type);
     setLoading(true);
 
@@ -217,7 +218,7 @@ const SubscriptionForm: React.FC<{
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
-            onClick={() => setSubscriptionType(type as 'monthly' | 'yearly')}
+            onClick={() => setSubscriptionType(type as 'monthly' | 'yearly' | 'lifetime')}
           >
             <div className="flex justify-between items-center">
               <div>
@@ -227,7 +228,7 @@ const SubscriptionForm: React.FC<{
                     name="subscription"
                     value={type}
                     checked={subscriptionType === type}
-                    onChange={() => setSubscriptionType(type as 'monthly' | 'yearly')}
+                    onChange={() => setSubscriptionType(type as 'monthly' | 'yearly' | 'lifetime')}
                     className="mr-3 text-blue-600"
                   />
                   <div>
@@ -237,9 +238,12 @@ const SubscriptionForm: React.FC<{
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-blue-600">€{details.price}</p>
+                <p className="text-xl font-bold text-blue-600">£{details.price}</p>
                 {type === 'yearly' && (
-                  <p className="text-sm text-green-600">Save €10.89</p>
+                  <p className="text-sm text-green-600">Save £13.01</p>
+                )}
+                {type === 'lifetime' && (
+                  <p className="text-sm text-green-600">Best Value</p>
                 )}
               </div>
             </div>
