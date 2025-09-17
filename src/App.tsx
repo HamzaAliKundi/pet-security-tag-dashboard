@@ -39,8 +39,10 @@ function App() {
           <Route path="/verify-email-sent" element={<EmailVerificationSent />} />
           <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/verification-success" element={<VerificationSuccess />} />
-          <Route path="/qr/verify/:code" element={<QRVerificationPage />} />
         </Route>
+
+        {/* QR verification route - accessible to both logged-in and non-logged-in users */}
+        <Route path="/qr/verify/:code" element={<QRVerificationPage />} />
 
         <Route element={<ProtectedRoutes />}>
           <Route path="/" element={<Layout />}>
