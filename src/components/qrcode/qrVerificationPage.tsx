@@ -23,22 +23,31 @@ const QRVerificationPage: React.FC = () => {
       // Check if user is logged in (has token)
       const token = localStorage.getItem('token');
       
+      console.log('QR Details:', qrDetails);
+      console.log('Token exists:', !!token);
+      
       if (qrDetails.isVerified && qrDetails.hasActiveSubscription) {
         // Already verified with active subscription
+        console.log('QR already verified with active subscription');
         toast.success('QR code is already verified and active!');
         navigate('/overview');
       } else if (!token) {
         // User is not logged in - redirect to login
+        console.log('User not logged in, redirecting to login');
         toast.error('Please log in to verify this QR code');
         navigate('/', { state: { redirectTo: `/qr/verify/${code}` } });
       } else if (!qrDetails.isVerified && qrDetails.canAutoVerify) {
         // User is logged in, QR needs verification, and user has active subscription
+        console.log('Auto-verifying QR code');
         handleAutoVerification();
-      } else if (!qrDetails.isVerified) {
+      } else if (!qrDetails.isVerified && token) {
         // User is logged in and QR needs verification - show subscription modal
+        // This handles both cases: user has no subscription or QR is not assigned to user
+        console.log('Showing subscription modal for logged-in user');
         setShowSubscriptionModal(true);
       } else {
-        // Fallback case
+        // Fallback case - show subscription modal
+        console.log('Fallback case - showing subscription modal');
         setShowSubscriptionModal(true);
       }
     }
@@ -65,7 +74,7 @@ const QRVerificationPage: React.FC = () => {
     }
   };
 
-  const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly', petId?: string) => {
+  const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly' | 'lifetime', petId?: string) => {
     try {
       if (!qrDetails?.qrCode?.id) {
         toast.error('QR code information not available');

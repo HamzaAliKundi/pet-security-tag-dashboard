@@ -37,7 +37,7 @@ export const qrcodeApi = createApi({
     // Verify QR code with subscription (authenticated)
     verifyQRWithSubscription: builder.mutation<any, {
       qrCodeId: string;
-      subscriptionType: 'monthly' | 'yearly';
+      subscriptionType: 'monthly' | 'yearly' | 'lifetime';
       petId?: string;
     }>({
       query: (data) => ({
@@ -52,7 +52,7 @@ export const qrcodeApi = createApi({
     confirmSubscriptionPayment: builder.mutation<any, {
       qrCodeId: string;
       paymentIntentId: string;
-      subscriptionType: 'monthly' | 'yearly';
+      subscriptionType: 'monthly' | 'yearly' | 'lifetime';
       petId?: string;
     }>({
       query: (data) => ({
@@ -81,6 +81,15 @@ export const qrcodeApi = createApi({
       }),
       providesTags: (result, error, qrCodeId) => [{ type: 'Subscription', id: qrCodeId }],
     }),
+
+    // Get subscription statistics
+    getSubscriptionStats: builder.query<any, void>({
+      query: () => ({
+        url: "/user/subscriptions/stats",
+        method: "GET",
+      }),
+      providesTags: ['Subscription'],
+    }),
   }),
 });
 
@@ -91,5 +100,6 @@ export const {
   useConfirmSubscriptionPaymentMutation,
   useGetUserSubscriptionsQuery,
   useGetSubscriptionByQRQuery,
+  useGetSubscriptionStatsQuery,
 } = qrcodeApi;
 
