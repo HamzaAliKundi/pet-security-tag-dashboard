@@ -40,6 +40,7 @@ export const {
 // Export pet tag orders API
 export { petTagOrdersApi } from './petTagOrders';
 export {
+  useGetUserPetCountQuery,
   useCreatePetTagOrderMutation,
   useGetPetTagOrdersQuery,
   useGetPetTagOrderQuery,

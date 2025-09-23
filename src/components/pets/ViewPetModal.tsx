@@ -84,18 +84,70 @@ const ViewPetModal: React.FC<ViewPetModalProps> = ({ isOpen, pet, onClose }) => 
             {/* Tag Information */}
             <div className="bg-blue-50 border border-blue-200 rounded-[8px] p-4">
               <h4 className="font-afacad font-semibold text-[16px] text-[#222] mb-3">Tag Information</h4>
+              
+              {/* QR Code Image */}
+              {pet.qrCode?.imageUrl && (
+                <div className="mb-4 flex justify-center">
+                  <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-200">
+                    <img 
+                      src={pet.qrCode.imageUrl} 
+                      alt={`QR Code for ${pet.petName}`}
+                      className="w-32 h-32 object-contain"
+                    />
+                    <p className="text-center text-xs text-gray-600 mt-2 font-mono">
+                      {pet.qrCode.code}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
+                  <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Tag Code</label>
+                  <p className="font-afacad text-[14px] text-[#222] font-mono">
+                    {pet.qrCode?.code || 'Not assigned'}
+                  </p>
+                </div>
+                <div>
                   <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Status</label>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Active
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    pet.qrCode?.status === 'verified' ? 'bg-green-100 text-green-800' :
+                    pet.qrCode?.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' :
+                    pet.qrCode?.status === 'lost' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {pet.qrCode?.status === 'verified' ? 'Active' :
+                     pet.qrCode?.status === 'assigned' ? 'Assigned' :
+                     pet.qrCode?.status === 'lost' ? 'Lost' :
+                     pet.qrCode?.status === 'unassigned' ? 'Unassigned' :
+                     'No Tag'}
                   </span>
+                </div>
+                <div>
+                  <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Scans</label>
+                  <p className="font-afacad text-[14px] text-[#222]">
+                    {pet.qrCode?.scannedCount || 0} times
+                  </p>
+                </div>
+                <div>
+                  <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Last Scanned</label>
+                  <p className="font-afacad text-[14px] text-[#222]">
+                    {pet.qrCode?.lastScannedAt ? new Date(pet.qrCode.lastScannedAt).toLocaleDateString() : 'Never'}
+                  </p>
                 </div>
                 <div>
                   <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Created</label>
                   <p className="font-afacad text-[14px] text-[#222]">
                     {pet.createdAt ? new Date(pet.createdAt).toLocaleDateString() : 'N/A'}
                   </p>
+                </div>
+                <div>
+                  <label className="font-afacad font-semibold text-[12px] text-[#636363] mb-1 block">Verification</label>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    pet.qrCode?.hasVerified ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                  }`}>
+                    {pet.qrCode?.hasVerified ? 'Verified' : 'Pending'}
+                  </span>
                 </div>
               </div>
             </div>

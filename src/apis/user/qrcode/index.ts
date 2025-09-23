@@ -90,6 +90,41 @@ export const qrcodeApi = createApi({
       }),
       providesTags: ['Subscription'],
     }),
+
+    // Renew subscription
+    renewSubscription: builder.mutation<any, { subscriptionId: string }>({
+      query: (data) => ({
+        url: "/user/subscriptions/renew",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Subscription'],
+    }),
+
+    // Upgrade subscription
+    upgradeSubscription: builder.mutation<any, { subscriptionId: string; newType: string }>({
+      query: (data) => ({
+        url: "/user/subscriptions/upgrade",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Subscription'],
+    }),
+
+    // Confirm subscription payment
+    confirmSubscriptionPayment: builder.mutation<any, { 
+      subscriptionId: string; 
+      paymentIntentId: string; 
+      action: string; 
+      newType?: string 
+    }>({
+      query: (data) => ({
+        url: "/user/subscriptions/confirm-payment",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Subscription'],
+    }),
   }),
 });
 
@@ -101,5 +136,7 @@ export const {
   useGetUserSubscriptionsQuery,
   useGetSubscriptionByQRQuery,
   useGetSubscriptionStatsQuery,
+  useRenewSubscriptionMutation,
+  useUpgradeSubscriptionMutation,
 } = qrcodeApi;
 
