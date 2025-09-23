@@ -48,8 +48,8 @@ export const qrcodeApi = createApi({
       invalidatesTags: ['QRCode', 'Subscription'],
     }),
 
-    // Confirm subscription payment
-    confirmSubscriptionPayment: builder.mutation<any, {
+    // Confirm QR subscription payment
+    confirmQRSubscriptionPayment: builder.mutation<any, {
       qrCodeId: string;
       paymentIntentId: string;
       subscriptionType: 'monthly' | 'yearly' | 'lifetime';
@@ -116,7 +116,7 @@ export const qrcodeApi = createApi({
       subscriptionId: string; 
       paymentIntentId: string; 
       action: string; 
-      newType?: string 
+      newType?: string; 
     }>({
       query: (data) => ({
         url: "/user/subscriptions/confirm-payment",
@@ -132,11 +132,12 @@ export const {
   useGetQRVerificationDetailsQuery,
   useAutoVerifyQRCodeMutation,
   useVerifyQRWithSubscriptionMutation,
-  useConfirmSubscriptionPaymentMutation,
+  useConfirmQRSubscriptionPaymentMutation,
   useGetUserSubscriptionsQuery,
   useGetSubscriptionByQRQuery,
   useGetSubscriptionStatsQuery,
   useRenewSubscriptionMutation,
   useUpgradeSubscriptionMutation,
+  useConfirmSubscriptionPaymentMutation,
 } = qrcodeApi;
 
