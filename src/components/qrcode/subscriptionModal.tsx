@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useConfirmSubscriptionPaymentMutation } from '../../apis/user/qrcode';
+import { useConfirmQRSubscriptionPaymentMutation } from '../../apis/user/qrcode';
 import toast from 'react-hot-toast';
 
 // Get Stripe publishable key from environment
@@ -35,7 +35,7 @@ const SubscriptionForm: React.FC<{
   const [clientSecret, setClientSecret] = useState<string>('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
-  const [confirmSubscriptionPayment] = useConfirmSubscriptionPaymentMutation();
+  const [confirmQRSubscriptionPayment] = useConfirmQRSubscriptionPaymentMutation();
 
   const pricing = {
     monthly: { price: 2.75, label: 'Monthly', description: 'Billed every month' },
@@ -110,7 +110,7 @@ const SubscriptionForm: React.FC<{
         toast.error(error.message || 'Payment failed');
       } else if (paymentIntent.status === 'succeeded') {
         // Confirm with backend
-        await confirmSubscriptionPayment({
+        await confirmQRSubscriptionPayment({
           qrCodeId: qrCode.id,
           paymentIntentId: paymentIntent.id,
           subscriptionType,

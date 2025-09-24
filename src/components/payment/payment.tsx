@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useGetPetTagOrdersQuery } from '../../apis/user/users';
+import { useGetUserSubscriptionsQuery } from '../../apis/user/qrcode';
 
 // Custom CSS for 800px breakpoint
 // Add this to your global CSS (e.g., index.css):
@@ -10,10 +11,39 @@ import { useGetPetTagOrdersQuery } from '../../apis/user/users';
 
 const Payment = () => {
   // Fetch payment history from API
-  const { data: ordersData, isLoading, error } = useGetPetTagOrdersQuery({ page: 1, limit: 50 });
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useGetPetTagOrdersQuery({ page: 1, limit: 50 });
+  const { data: subscriptionsData, isLoading: subscriptionsLoading, error: subscriptionsError } = useGetUserSubscriptionsQuery({ page: 1, limit: 50 });
   
-  // Use real orders data or fallback to empty array
-  const paymentData = ordersData?.orders || [];
+  // Combine and sort payment data
+  const paymentData = useMemo(() => {
+    const orders = ordersData?.orders || [];
+    const subscriptions = subscriptionsData?.subscriptions || [];
+    
+    // Transform subscriptions to match payment format
+    const subscriptionPayments = subscriptions.map((sub: any) => ({
+      _id: sub._id,
+      paymentIntentId: sub.paymentIntentId || `SUB-${sub._id.slice(-8)}`,
+      createdAt: sub.createdAt,
+      totalCostEuro: sub.amountPaid,
+      status: sub.status === 'active' ? 'paid' : sub.status,
+      type: 'subscription',
+      subscriptionType: sub.type,
+      endDate: sub.endDate
+    }));
+    
+    // Transform orders to include type
+    const orderPayments = orders.map(order => ({
+      ...order,
+      type: 'order'
+    }));
+    
+    // Combine and sort by date (newest first)
+    const allPayments = [...orderPayments, ...subscriptionPayments];
+    return allPayments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [ordersData, subscriptionsData]);
+  
+  const isLoading = ordersLoading || subscriptionsLoading;
+  const error = ordersError || subscriptionsError;
   
   // Format date function
   const formatDate = (dateString: string) => {
@@ -53,7 +83,7 @@ const Payment = () => {
             <span className="font-afacad font-semibold text-[16px] text-[#4CB2E2]">Payment History</span>
           </div>
           <span className="font-afacad font-semibold text-[16px] text-[#636363]">
-            {isLoading ? '...' : paymentData.length}
+            {isLoading ? '...' : `${paymentData.length} payments`}
           </span>
         </div>
 
@@ -78,32 +108,42 @@ const Payment = () => {
           </div>
         )}
 
-        {/* Table: scrollable only on <=800px */}
+        {/* Table: scrollable only on <=1000px */}
         {!isLoading && !error && paymentData.length > 0 && (
           <div className="w-full max-w-full overflow-x-auto">
-            <table className="w-full min-w-[800px] md:min-w-0">
+            <table className="w-full min-w-[1000px] md:min-w-0">
             <thead>
               <tr className="border-b border-[#E0E0E0]">
-                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[30%]">INVOICE NO.</th>
-                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[15%]">DATE</th>
-                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[15%]">AMOUNT</th>
-                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[20%]">STATUS</th>
-               
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[25%]">INVOICE NO.</th>
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[15%]">TYPE</th>
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[12%]">DATE</th>
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[12%]">AMOUNT</th>
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[18%]">STATUS</th>
+                <th className="text-left py-3 font-afacad font-semibold text-[14px] text-[#636363] w-[18%]">DETAILS</th>
               </tr>
             </thead>
             <tbody>
-              {paymentData.map((order) => {
-                const statusInfo = getStatusInfo(order.status);
+              {paymentData.map((payment) => {
+                const statusInfo = getStatusInfo(payment.status);
                 return (
-                  <tr key={order._id} className="border-b border-[#E0E0E0]">
+                  <tr key={payment._id} className="border-b border-[#E0E0E0]">
                     <td className="py-4 font-afacad text-[14px] text-[#222]">
-                      {order.paymentIntentId}
+                      {payment.paymentIntentId}
+                    </td>
+                    <td className="py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-afacad font-medium ${
+                        payment.type === 'subscription' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {payment.type === 'subscription' ? 'Subscription' : 'Pet Tag Order'}
+                      </span>
                     </td>
                     <td className="py-4 font-afacad text-[14px] text-[#222]">
-                      {formatDate(order.createdAt)}
+                      {formatDate(payment.createdAt)}
                     </td>
                     <td className="py-4 font-afacad text-[14px] text-[#222]">
-                      {formatAmount(order.totalCostEuro)}
+                      {formatAmount(payment.totalCostEuro)}
                     </td>
                     <td className="py-4">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-afacad font-medium ${statusInfo.bgColor} ${statusInfo.textColor}`}>
@@ -111,7 +151,31 @@ const Payment = () => {
                         {statusInfo.text}
                       </span>
                     </td>
-                  
+                    <td className="py-4 font-afacad text-[12px] text-[#636363]">
+                      {payment.type === 'subscription' ? (
+                        <div>
+                          <div className="font-medium text-[#222]">
+                            {payment.subscriptionType?.charAt(0).toUpperCase() + payment.subscriptionType?.slice(1)} Plan
+                          </div>
+                          {payment.endDate && (
+                            <div className="text-[11px]">
+                              Until: {formatDate(payment.endDate)}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="font-medium text-[#222]">
+                            {payment.quantity} Pet Tag{payment.quantity > 1 ? 's' : ''}
+                          </div>
+                          {payment.petName && (
+                            <div className="text-[11px]">
+                              For: {payment.petName}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 );
               })}

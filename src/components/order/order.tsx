@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useCreatePetTagOrderMutation, useConfirmPaymentMutation } from '../../apis/user/users';
+import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery } from '../../apis/user/users';
 
 const TAG_PRICE = 0; // Tags are free
 const SHIPPING = 2.95; // Shipping cost in euros
@@ -323,13 +323,33 @@ const Order = () => {
     country: ''
   });
 
+  // Get user's pet count for limit validation
+  const { data: petCountData, isLoading: petCountLoading } = useGetUserPetCountQuery();
+  
   const total = SHIPPING.toFixed(2);
+  const currentPetCount = petCountData?.data?.currentCount || 0;
+  const maxAllowed = petCountData?.data?.maxAllowed || 5;
+  const canOrderMore = petCountData?.data?.canOrderMore || false;
+  const remainingSlots = petCountData?.data?.remainingSlots || 0;
 
   const handleCompleteOrder = () => {
     if (!petName.trim()) {
       alert('Please enter a pet name');
       return;
     }
+
+    // Check if user can order more pets
+    if (!canOrderMore) {
+      alert(`You have reached the maximum limit of ${maxAllowed} pet tags per account.`);
+      return;
+    }
+
+    // Check if the requested quantity exceeds remaining slots
+    if (quantity > remainingSlots) {
+      alert(`You can only order ${remainingSlots} more pet tag(s). You currently have ${currentPetCount} pets and the maximum is ${maxAllowed}.`);
+      return;
+    }
+
     setShowModal(true);
   };
 
@@ -363,6 +383,23 @@ const Order = () => {
       <div className="mb-8 text-center">
         <div className="font-afacad font-semibold text-[24px] text-[#222] mb-2">Order more tags</div>
         <div className="font-afacad text-[15px] text-[#636363]">You are on the Premium Plus plan, so you can order as many tags as you need.</div>
+        
+        {/* Pet Limit Status */}
+        {!petCountLoading && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+            <div className="font-afacad text-[14px] text-blue-800">
+              <span className="font-semibold">Pet Tags Status:</span> {currentPetCount}/{maxAllowed} used
+              {remainingSlots > 0 && (
+                <span className="text-blue-600"> • {remainingSlots} slots remaining</span>
+              )}
+            </div>
+            {!canOrderMore && (
+              <div className="font-afacad text-[13px] text-red-600 mt-1">
+                ⚠️ You have reached the maximum limit of {maxAllowed} pet tags per account.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Card */}
@@ -380,8 +417,11 @@ const Order = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="w-9 h-9 flex items-center justify-center rounded-[8px] border border-[#E0E0E0] bg-white shadow-sm hover:bg-[#f3f3f3] transition"
+              className={`w-9 h-9 flex items-center justify-center rounded-[8px] border border-[#E0E0E0] bg-white shadow-sm transition ${
+                !canOrderMore || quantity <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#f3f3f3]'
+              }`}
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              disabled={!canOrderMore || quantity <= 1}
               aria-label="Decrease quantity"
             >
               <svg width="18" height="18" fill="none" stroke="#B0B0B0" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 12h12"/></svg>
@@ -389,8 +429,11 @@ const Order = () => {
             <span className="w-8 text-center font-afacad font-semibold text-[16px]">{quantity}</span>
             <button
               type="button"
-              className="w-9 h-9 flex items-center justify-center rounded-[8px] bg-[#4CB2E2] shadow-sm hover:bg-[#38a1d6] transition"
-              onClick={() => setQuantity(q => q + 1)}
+              className={`w-9 h-9 flex items-center justify-center rounded-[8px] shadow-sm transition ${
+                !canOrderMore || quantity >= remainingSlots ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-[#4CB2E2] hover:bg-[#38a1d6]'
+              }`}
+              onClick={() => setQuantity(q => Math.min(remainingSlots, q + 1))}
+              disabled={!canOrderMore || quantity >= remainingSlots}
               aria-label="Increase quantity"
             >
               <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg>
@@ -427,9 +470,14 @@ const Order = () => {
         <button
           type="button"
           onClick={handleCompleteOrder}
-          className="w-full py-3 rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[17px] shadow-md hover:bg-[#38a1d6] transition"
+          disabled={!canOrderMore || petCountLoading}
+          className={`w-full py-3 rounded-[8px] font-afacad font-semibold text-[17px] shadow-md transition ${
+            !canOrderMore || petCountLoading
+              ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              : 'bg-[#4CB2E2] text-white hover:bg-[#38a1d6]'
+          }`}
         >
-          Complete Order
+          {petCountLoading ? 'Loading...' : !canOrderMore ? 'Limit Reached' : 'Complete Order'}
         </button>
       </div>
 

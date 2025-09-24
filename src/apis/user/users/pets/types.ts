@@ -12,6 +12,14 @@ export interface Pet {
   image?: string;
   createdAt: string;
   updatedAt: string;
+  qrCode?: {
+    code: string;
+    status: 'unassigned' | 'assigned' | 'verified' | 'lost';
+    hasVerified: boolean;
+    scannedCount: number;
+    lastScannedAt?: string;
+    imageUrl: string;
+  } | null;
 }
 
 export interface PetResponse {

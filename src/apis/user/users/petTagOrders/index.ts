@@ -21,6 +21,24 @@ export const petTagOrdersApi = createApi({
   }),
   tagTypes: ['PetTagOrder'],
   endpoints: (builder) => ({
+    // Get user's pet count for limit validation
+    getUserPetCount: builder.query<{
+      message: string;
+      status: number;
+      data: {
+        currentCount: number;
+        maxAllowed: number;
+        canOrderMore: boolean;
+        remainingSlots: number;
+      };
+    }, void>({
+      query: () => ({
+        url: "/user/user-pet-count",
+        method: "GET",
+      }),
+      providesTags: ['PetTagOrder'],
+    }),
+
     // Create a new pet tag order
     createPetTagOrder: builder.mutation<PetTagOrderResponse, PetTagOrderRequest>({
       query: (orderData) => ({
@@ -79,6 +97,7 @@ export const petTagOrdersApi = createApi({
 });
 
 export const {
+  useGetUserPetCountQuery,
   useCreatePetTagOrderMutation,
   useGetPetTagOrdersQuery,
   useGetPetTagOrderQuery,
