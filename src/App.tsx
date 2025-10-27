@@ -18,6 +18,7 @@ import ContactPage from "./pages/contact";
 import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
 import Order from "./components/order/order";
+import ReplacementOrder from "./components/order/replacementOrder";
 import EditPet from "./components/pets/edit-pet/edit-pet";
 import ViewPet from "./components/pets/viewPet";
 import QRVerificationPage from "./components/qrcode/qrVerificationPage";
@@ -48,6 +49,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route path="/overview" element={<OverviewPage />} />
             <Route path="/order" element={<Order />} />
+            <Route path="/replacement-order/:petId" element={<ReplacementOrder />} />
             
             <Route path="/pets" element={<PetsPage />} />
             <Route path="/edit-pet/:petId" element={<EditPet />} />
