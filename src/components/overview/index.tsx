@@ -1,8 +1,17 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import SubscriptionCard from '../subscription/subscriptionCard'
+import { useGetUserPetsQuery } from '../../apis/user/users'
 
 const Overview = () => {
+  // Fetch pets data to count active QR tags
+  const { data: petsData, isLoading } = useGetUserPetsQuery({ page: 1, limit: 100 });
+  
+  // Count active QR tags (pets with verified QR codes)
+  const activeTagCount = petsData?.pets?.filter(pet => 
+    pet.qrCode?.status === 'verified' || pet.qrCode?.hasVerified
+  ).length || 0;
+
   return (
     <div className="flex flex-col items-center w-full">
       <div className="w-full max-w-[750px] min-h-[110px] flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[11.72px] shadow-lg px-4 sm:px-6 py-4 sm:py-[18px] box-border">
@@ -12,7 +21,7 @@ const Overview = () => {
               Your Active Tag(s):
             </span>
             <span className="font-afacad font-semibold text-[20px] sm:text-[30px] leading-[26px] sm:leading-[36px] tracking-[0.32px] text-[#313131]">
-              2
+              {isLoading ? '...' : activeTagCount}
             </span>
           </div>
           <span className="font-afacad font-normal text-[12px] sm:text-[16px] leading-[100%] tracking-[0.4px] text-[#636363] mt-1">
