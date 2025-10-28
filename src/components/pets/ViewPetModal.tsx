@@ -9,6 +9,37 @@ interface ViewPetModalProps {
 const ViewPetModal: React.FC<ViewPetModalProps> = ({ isOpen, pet, onClose }) => {
   if (!isOpen || !pet) return null;
 
+  // Function to download QR code
+  const handleDownloadQRCode = async () => {
+    if (!pet.qrCode?.imageUrl) {
+      alert('QR code image not available');
+      return;
+    }
+
+    try {
+      // Fetch the image
+      const response = await fetch(pet.qrCode.imageUrl);
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${pet.petName || 'pet'}_qr_code.png`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading QR code:', error);
+      alert('Failed to download QR code. Please try again.');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[16px] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -86,17 +117,44 @@ const ViewPetModal: React.FC<ViewPetModalProps> = ({ isOpen, pet, onClose }) => 
               <h4 className="font-afacad font-semibold text-[16px] text-[#222] mb-3">Tag Information</h4>
               
               {/* QR Code Image */}
-              {pet.qrCode?.imageUrl && (
-                <div className="mb-4 flex justify-center">
+              {pet.qrCode?.imageUrl ? (
+                <div className="mb-4 flex flex-col items-center">
                   <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-200">
-                    <img 
-                      src={pet.qrCode.imageUrl} 
-                      alt={`QR Code for ${pet.petName}`}
-                      className="w-32 h-32 object-contain"
-                    />
+                    <div className="flex justify-center">
+                      <img 
+                        src={pet.qrCode.imageUrl} 
+                        alt={`QR Code for ${pet.petName}`}
+                        className="w-32 h-32 object-contain"
+                      />
+                    </div>
                     <p className="text-center text-xs text-gray-600 mt-2 font-mono">
                       {pet.qrCode.code}
                     </p>
+                  </div>
+                  
+                  {/* Download Button */}
+                  <button
+                    onClick={handleDownloadQRCode}
+                    className="mt-3 flex items-center gap-2 bg-[#4CB2E2] hover:bg-[#3da1d1] text-white font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] transition"
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Download QR Code
+                  </button>
+                </div>
+              ) : (
+                <div className="mb-4 flex justify-center">
+                  <div className="bg-gray-100 p-6 rounded-lg border border-gray-200 text-center">
+                    <svg width="48" height="48" fill="none" stroke="#9CA3AF" strokeWidth="1" viewBox="0 0 24 24" className="mx-auto mb-2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <rect x="7" y="7" width="3" height="3"/>
+                      <rect x="14" y="7" width="3" height="3"/>
+                      <rect x="7" y="14" width="3" height="3"/>
+                      <rect x="14" y="14" width="3" height="3"/>
+                    </svg>
+                    <p className="font-afacad text-[14px] text-gray-500">QR Code not available</p>
+                    <p className="font-afacad text-[12px] text-gray-400 mt-1">Complete your order to generate QR code</p>
                   </div>
                 </div>
               )}

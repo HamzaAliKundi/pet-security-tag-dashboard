@@ -61,6 +61,11 @@ const Pets = () => {
     // Optionally show a success message
   };
 
+  const handleReplacementOrder = (pet: any) => {
+    // Navigate to replacement order page with pet data
+    window.location.href = `/replacement-order/${pet._id}`;
+  };
+
   const handleViewPet = (pet: any) => {
     setSelectedPetForView(pet);
     setIsViewModalOpen(true);
@@ -120,11 +125,11 @@ const Pets = () => {
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 View {pet.petName}'s details
               </button>
-              <Link to="/order" className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
+              <button onClick={() => handleReplacementOrder(pet)} className="flex items-center justify-center gap-2 bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] px-4 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto hover:bg-[#d6f0fd] transition">
                 {/* Refresh Icon */}
                 <svg width="18" height="18" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.07 19A9 9 0 1 1 21 12.93"/></svg>
                 Get replacement tag
-              </Link>
+              </button>
             </div>
           </div>
         ))}

@@ -9,6 +9,7 @@ export interface PetTagOrderRequest {
   state: string;
   zipCode: string;
   country: string;
+  isReplacement?: boolean;
 }
 
 export interface PetTagOrderResponse {
