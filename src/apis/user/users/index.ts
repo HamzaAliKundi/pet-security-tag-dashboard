@@ -29,12 +29,20 @@ export const userApi = createApi({
       }),
       invalidatesTags: ['User'],
     }),
+    deleteAccount: builder.mutation({
+      query: () => ({
+        url: "/user/delete-account",
+        method: "DELETE",
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
 });
 
 export const {
   useGetSingleUserQuery,
-  useUpdateSingleUserMutation
+  useUpdateSingleUserMutation,
+  useDeleteAccountMutation
 } = userApi;
 
 // Export pet tag orders API

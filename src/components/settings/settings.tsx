@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useGetSingleUserQuery, useUpdateSingleUserMutation } from '../../apis/user/users';
+import { useNavigate } from 'react-router-dom';
+import { useGetSingleUserQuery, useUpdateSingleUserMutation, useDeleteAccountMutation } from '../../apis/user/users';
 
 interface UserFormData {
   firstName: string;
@@ -11,10 +12,13 @@ interface UserFormData {
 
 const Settings = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const navigate = useNavigate();
   
   // @ts-ignore
   const { data: userData, isLoading: isLoadingUser, error: userError } = useGetSingleUserQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateSingleUserMutation();
+  const [deleteAccount, { isLoading: isDeletingAccount }] = useDeleteAccountMutation();
 
   // Form hook
   const {
@@ -53,6 +57,19 @@ const Settings = () => {
       });
     }
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount().unwrap();
+      toast.success('Your account has been deleted successfully.');
+      localStorage.removeItem('token');
+      navigate('/', { replace: true });
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to delete account');
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
   };
 
   // Loading state for initial data fetch
@@ -252,6 +269,67 @@ const Settings = () => {
           )}
         </form>
       </div>
+
+      {/* Danger zone */}
+      <div className="bg-white rounded-[16px] shadow-lg border border-[#FFE2E2] px-6 py-6 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <div className="font-afacad font-semibold text-[16px] text-[#C81E1E]">Delete Account</div>
+            <p className="font-afacad text-[14px] text-[#7A1C1C] mt-1">
+              Permanently remove your account and all associated data. This action cannot be undone.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="px-4 py-2 rounded-[8px] bg-[#FEE2E2] text-[#B91C1C] font-afacad font-semibold text-[14px] shadow-sm hover:bg-[#FECACA] transition"
+          >
+            Delete account
+          </button>
+        </div>
+      </div>
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 px-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close modal"
+            >
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-red-100 text-red-500 rounded-full p-3 mb-4">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                  <path d="M12 9v4m0 4h.01M3.23 17a2 2 0 0 0 1.73 1h14.08a2 2 0 0 0 1.73-1l2.77-5a2 2 0 0 0 0-2l-2.77-5A2 2 0 0 0 19.04 3H4.96a2 2 0 0 0-1.73 1L.46 9a2 2 0 0 0 0 2l2.77 5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className="text-[20px] font-afacad font-semibold text-[#1F2933] mb-2">Delete account?</h2>
+              <p className="text-[14px] text-[#6B7280] font-afacad mb-4">
+                This will permanently delete your profile, pets, orders, subscriptions, and QR code assignments. You will lose access immediately.
+              </p>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 px-4 py-2.5 rounded-[10px] border border-gray-200 text-gray-600 font-afacad font-semibold hover:bg-gray-100 transition"
+                disabled={isDeletingAccount}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 px-4 py-2.5 rounded-[10px] bg-[#DC2626] text-white font-afacad font-semibold hover:bg-[#B91C1C] transition disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isDeletingAccount ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
