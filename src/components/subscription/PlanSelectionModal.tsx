@@ -32,7 +32,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
     {
       type: 'yearly',
       name: 'Yearly Plan',
-      price: 19.99,
+      price: 28.99,
       currency: 'GBP',
       period: 'per year',
       icon: Calendar,
@@ -42,7 +42,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
     {
       type: 'lifetime',
       name: 'Lifetime Plan',
-      price: 99.00,
+      price: 129.99,
       currency: 'GBP',
       period: 'one-time',
       icon: Crown,

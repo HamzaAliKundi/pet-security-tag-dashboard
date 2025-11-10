@@ -6,7 +6,7 @@ import PaymentModal from './PaymentModal';
 import PlanSelectionModal from './PlanSelectionModal';
 
 const SubscriptionCard: React.FC = () => {
-  const { data: subscriptionsData, isLoading: subscriptionsLoading } = useGetUserSubscriptionsQuery();
+  const { data: subscriptionsData, isLoading: subscriptionsLoading } = useGetUserSubscriptionsQuery({});
   const { data: statsData, isLoading: statsLoading } = useGetSubscriptionStatsQuery();
   
   // Modal states
@@ -31,7 +31,7 @@ const SubscriptionCard: React.FC = () => {
     
     const pricing = {
       monthly: 2.75,
-      yearly: 19.99
+      yearly: 28.99
     };
 
     setPaymentData({
@@ -53,8 +53,8 @@ const SubscriptionCard: React.FC = () => {
     
     const pricing = {
       monthly: 2.75,
-      yearly: 19.99,
-      lifetime: 99.00
+      yearly: 28.99,
+      lifetime: 129.99
     };
 
     setPaymentData({
