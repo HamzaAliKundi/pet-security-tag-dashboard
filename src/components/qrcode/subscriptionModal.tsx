@@ -39,8 +39,8 @@ const SubscriptionForm: React.FC<{
 
   const pricing = {
     monthly: { price: 2.75, label: 'Monthly', description: 'Billed every month' },
-    yearly: { price: 19.99, label: 'Yearly', description: 'Billed every year' },
-    lifetime: { price: 99.00, label: 'Lifetime', description: 'One-time payment' }
+    yearly: { price: 28.99, label: 'Yearly', description: 'Billed every year' },
+    lifetime: { price: 129.99, label: 'Lifetime', description: 'One-time payment' }
   };
 
   const handleSubscriptionSelect = async (type: 'monthly' | 'yearly' | 'lifetime') => {
@@ -240,7 +240,7 @@ const SubscriptionForm: React.FC<{
               <div className="text-right">
                 <p className="text-xl font-bold text-blue-600">£{details.price}</p>
                 {type === 'yearly' && (
-                  <p className="text-sm text-green-600">Save £13.01</p>
+                  <p className="text-sm text-green-600">Save £4.01</p>
                 )}
                 {type === 'lifetime' && (
                   <p className="text-sm text-green-600">Best Value</p>
