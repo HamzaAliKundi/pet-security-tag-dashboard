@@ -78,13 +78,13 @@ const PaymentForm = ({
 
       // Create order using RTK Query
       // Backend expects EUR, so convert if needed
-      const totalCostEuro = totalCost.currency === 'EUR' 
+      const totalCostEuro = totalCost.currency === 'GBP' 
         ? totalCost.amount 
         : totalCost.currency === 'USD' 
-          ? 2.90 // Convert $9.19 USD to EUR equivalent
+          ? 2.90 // Convert $9.19 USD to GBP equivalent
           : totalCost.currency === 'CAD'
-            ? 2.90 // Convert CAD 15.09 to EUR equivalent
-            : 2.90; // Default EUR
+            ? 2.90 // Convert CAD 15.09 to GBP equivalent
+            : 2.90; // Default GBP
 
       const orderResult = await createPetTagOrder({
         quantity,

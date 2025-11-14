@@ -140,7 +140,7 @@ const SubscriptionForm: React.FC<{
             </div>
             <div className="text-right">
               <p className="text-xl font-bold text-blue-600">
-                €{pricing[subscriptionType].price}
+                £{pricing[subscriptionType].price}
               </p>
             </div>
           </div>
@@ -197,7 +197,7 @@ const SubscriptionForm: React.FC<{
               disabled={!stripe || loading}
               className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : `Pay €${pricing[subscriptionType].price}`}
+              {loading ? 'Processing...' : `Pay £${pricing[subscriptionType].price}`}
             </button>
           </div>
         </form>

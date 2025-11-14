@@ -53,7 +53,7 @@ const Payment = () => {
   
   // Format amount function
   const formatAmount = (amount: number) => {
-    return `€${amount.toFixed(2)}`;
+    return `£${amount.toFixed(2)}`;
   };
   
   // Get status display info
