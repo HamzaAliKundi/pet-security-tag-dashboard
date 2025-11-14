@@ -8,11 +8,13 @@ interface UserFormData {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
 }
 
 const Settings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [countryCode, setCountryCode] = useState('+1');
   const navigate = useNavigate();
   
   // @ts-ignore
@@ -35,12 +37,49 @@ const Settings = () => {
       setValue('firstName', userData.user.firstName);
       setValue('lastName', userData.user.lastName);
       setValue('email', userData.user.email);
+      if (userData.user.phone) {
+        // Extract country code and phone number from stored phone
+        const phoneValue = userData.user.phone;
+        // Check if phone starts with + and extract country code
+        if (phoneValue.startsWith('+')) {
+          // Try to match common country codes (sorted by length, longer first to avoid partial matches)
+          const commonCodes = ['+44', '+92', '+91', '+86', '+81', '+33', '+49', '+39', '+34', '+61', '+27', '+55', '+52', '+1', '+7'];
+          let matched = false;
+          for (const code of commonCodes) {
+            if (phoneValue.startsWith(code)) {
+              setCountryCode(code);
+              setValue('phone', phoneValue.substring(code.length).trim());
+              matched = true;
+              break;
+            }
+          }
+          // If no match, default to +1 and use full number
+          if (!matched) {
+            setCountryCode('+1');
+            setValue('phone', phoneValue);
+          }
+        } else {
+          setValue('phone', phoneValue);
+        }
+      } else {
+        setValue('phone', '');
+      }
     }
   }, [userData, setValue]);
 
   const onSubmit = async (data: UserFormData) => {
     try {
-      const result = await updateUser(data).unwrap();
+      // Combine country code with phone number
+      const phoneWithCountryCode = data.phone 
+        ? (data.phone.startsWith('+') ? data.phone : `${countryCode}${data.phone}`)
+        : undefined;
+      
+      const updateData = {
+        ...data,
+        phone: phoneWithCountryCode
+      };
+      
+      const result = await updateUser(updateData).unwrap();
       toast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (error: any) {
@@ -50,10 +89,33 @@ const Settings = () => {
 
   const handleCancel = () => {
     if (userData?.user) {
+      let phoneValue = '';
+      if (userData.user.phone) {
+        const phone = userData.user.phone;
+        if (phone.startsWith('+')) {
+          // Extract country code and phone number
+          const commonCodes = ['+44', '+92', '+91', '+86', '+81', '+33', '+49', '+39', '+34', '+61', '+27', '+55', '+52', '+1', '+7'];
+          let extracted = false;
+          for (const code of commonCodes) {
+            if (phone.startsWith(code)) {
+              setCountryCode(code);
+              phoneValue = phone.substring(code.length).trim();
+              extracted = true;
+              break;
+            }
+          }
+          if (!extracted) {
+            phoneValue = phone;
+          }
+        } else {
+          phoneValue = phone;
+        }
+      }
       reset({
         firstName: userData.user.firstName,
         lastName: userData.user.lastName,
-        email: userData.user.email
+        email: userData.user.email,
+        phone: phoneValue
       });
     }
     setIsEditing(false);
@@ -225,6 +287,63 @@ const Settings = () => {
             {errors.email && (
               <span className="text-red-500 text-xs mt-1">
                 {errors.email.message}
+              </span>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="phone">
+              Phone Number
+            </label>
+            <div className="flex gap-2">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                disabled={!isEditing}
+                className={`rounded-[8px] border border-[#E0E0E0] px-3 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                style={{ width: '120px' }}
+              >
+                <option value="+1">+1 (US/CA)</option>
+                <option value="+44">+44 (UK)</option>
+                <option value="+92">+92 (PK)</option>
+                <option value="+91">+91 (IN)</option>
+                <option value="+86">+86 (CN)</option>
+                <option value="+81">+81 (JP)</option>
+                <option value="+33">+33 (FR)</option>
+                <option value="+49">+49 (DE)</option>
+                <option value="+39">+39 (IT)</option>
+                <option value="+34">+34 (ES)</option>
+                <option value="+7">+7 (RU)</option>
+                <option value="+61">+61 (AU)</option>
+                <option value="+27">+27 (ZA)</option>
+                <option value="+55">+55 (BR)</option>
+                <option value="+52">+52 (MX)</option>
+              </select>
+              <input
+                id="phone"
+                type="tel"
+                className={`flex-1 rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                readOnly={!isEditing}
+                placeholder="Enter phone number"
+                {...register('phone', {
+                  pattern: {
+                    value: /^[\d\s\-()]+$/,
+                    message: 'Invalid phone number format'
+                  }
+                })}
+              />
+            </div>
+            {errors.phone && (
+              <span className="text-red-500 text-xs mt-1">
+                {errors.phone.message}
               </span>
             )}
           </div>

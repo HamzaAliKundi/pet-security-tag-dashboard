@@ -139,7 +139,7 @@ const Pets = () => {
       <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-6 mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="font-afacad font-semibold text-[16px] text-[#222] mb-1">Need to add more pets?</div>
-          <div className="font-afacad text-[13px] text-[#636363]">You can protect as many pets as you like with Digital Tails Premium Plus.</div>
+          <div className="font-afacad text-[13px] text-[#636363]">You can protect up to 5 pets with digital tails!</div>
         </div>
         <Link to="/order" className="flex items-center gap-2 border border-[#4CB2E2] text-[#4CB2E2] font-afacad font-semibold text-[15px] px-5 py-2 rounded-[8px] whitespace-nowrap w-full sm:w-auto">
           {/* Plus Icon */}

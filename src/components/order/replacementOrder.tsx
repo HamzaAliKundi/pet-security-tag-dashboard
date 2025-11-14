@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useGetPetQuery } from '../../apis/user/users';
+import { useLocalization } from '../../context/LocalizationContext';
 
 const TAG_PRICE = 0; // Tags are free
-const SHIPPING = 2.95; // Shipping cost in euros
 
 // Initialize Stripe using environment variable
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISH_KEY || '');
@@ -28,7 +28,7 @@ const ReplacementPaymentForm = ({
 }: {
   petId: string;
   petName: string;
-  totalCost: number;
+  totalCost: { amount: number; currency: string; symbol: string };
   tagColor: string;
   phone: string;
   street: string;
@@ -142,12 +142,12 @@ const ReplacementPaymentForm = ({
           </div>
           <div className="flex justify-between">
             <span>Shipping & Handling</span>
-            <span>€{SHIPPING.toFixed(2)}</span>
+            <span>{totalCost.symbol}{totalCost.amount.toFixed(2)}</span>
           </div>
           <hr className="my-2" />
           <div className="flex justify-between font-semibold text-lg">
             <span>Total</span>
-            <span>€{totalCost.toFixed(2)}</span>
+            <span>{totalCost.symbol}{totalCost.amount.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -310,8 +310,7 @@ const ReplacementOrder = () => {
 
   // Fetch pet data
   const { data: petData, isLoading, error } = useGetPetQuery(petId || '');
-
-  const total = SHIPPING; // Only shipping cost for replacement
+  const { shippingPrice, isLocalizing } = useLocalization();
 
   const handleFormChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -404,12 +403,16 @@ const ReplacementOrder = () => {
             </div>
             <div className="flex justify-between">
               <span className="font-afacad text-[14px] text-[#636363]">Shipping & Handling</span>
-              <span className="font-afacad text-[14px] text-[#222]">€{SHIPPING.toFixed(2)}</span>
+              <span className="font-afacad text-[14px] text-[#222]">
+                {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+              </span>
             </div>
             <hr className="my-2" />
             <div className="flex justify-between">
               <span className="font-afacad font-semibold text-[16px] text-[#222]">Total</span>
-              <span className="font-afacad font-semibold text-[16px] text-[#222]">€{total.toFixed(2)}</span>
+              <span className="font-afacad font-semibold text-[16px] text-[#222]">
+                {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+              </span>
             </div>
           </div>
         </div>
@@ -431,7 +434,7 @@ const ReplacementOrder = () => {
               <ReplacementPaymentForm
                 petId={petId || ''}
                 petName={pet.petName}
-                totalCost={total}
+                totalCost={shippingPrice}
                 tagColor={formData.tagColor}
                 phone={formData.phone}
                 street={formData.street}

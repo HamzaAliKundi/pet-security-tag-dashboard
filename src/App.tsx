@@ -22,12 +22,14 @@ import ReplacementOrder from "./components/order/replacementOrder";
 import EditPet from "./components/pets/edit-pet/edit-pet";
 import ViewPet from "./components/pets/viewPet";
 import QRVerificationPage from "./components/qrcode/qrVerificationPage";
+import { LocalizationProvider } from "./context/LocalizationContext";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Toaster position="top-center" reverseOrder={false} />
-      <Routes>
+    <LocalizationProvider>
+      <BrowserRouter>
+        <Toaster position="top-center" reverseOrder={false} />
+        <Routes>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -62,6 +64,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </LocalizationProvider>
   );
 }
 

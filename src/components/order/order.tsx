@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery } from '../../apis/user/users';
+import { useLocalization } from '../../context/LocalizationContext';
 
 const TAG_PRICE = 0; // Tags are free
-const SHIPPING = 2.95; // Shipping cost in euros
 
 // Initialize Stripe using environment variable
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISH_KEY || '');
@@ -32,7 +32,7 @@ const PaymentForm = ({
 }: {
   quantity: number;
   petName: string;
-  totalCost: number;
+  totalCost: { amount: number; currency: string; symbol: string };
   tagColor: string;
   phone: string;
   street: string;
@@ -77,10 +77,19 @@ const PaymentForm = ({
       }
 
       // Create order using RTK Query
+      // Backend expects EUR, so convert if needed
+      const totalCostEuro = totalCost.currency === 'EUR' 
+        ? totalCost.amount 
+        : totalCost.currency === 'USD' 
+          ? 2.90 // Convert $9.19 USD to EUR equivalent
+          : totalCost.currency === 'CAD'
+            ? 2.90 // Convert CAD 15.09 to EUR equivalent
+            : 2.90; // Default EUR
+
       const orderResult = await createPetTagOrder({
         quantity,
         petName,
-        totalCostEuro: totalCost,
+        totalCostEuro: totalCostEuro,
         tagColor,
         phone,
         street,
@@ -140,7 +149,7 @@ const PaymentForm = ({
                 <p><strong>Pet Name:</strong> {petName}</p>
                 <p><strong>Quantity:</strong> {quantity} tag(s)</p>
                 <p><strong>Tag Color:</strong> {tagColor}</p>
-                <p><strong>Total Cost:</strong> €{totalCost.toFixed(2)}</p>
+                <p><strong>Total Cost:</strong> {totalCost.symbol}{totalCost.amount.toFixed(2)} {totalCost.currency}</p>
               </div>
             </div>
 
@@ -300,7 +309,7 @@ const PaymentForm = ({
               disabled={!stripe || isProcessing}
               className="w-full py-3 rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[17px] shadow-md hover:bg-[#38a1d6] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Processing...' : `Pay €${totalCost.toFixed(2)}`}
+              {isProcessing ? 'Processing...' : `Pay ${totalCost.symbol}${totalCost.amount.toFixed(2)}`}
             </button>
           </form>
         </div>
@@ -325,8 +334,8 @@ const Order = () => {
 
   // Get user's pet count for limit validation
   const { data: petCountData, isLoading: petCountLoading } = useGetUserPetCountQuery();
+  const { shippingPrice, isLocalizing } = useLocalization();
   
-  const total = SHIPPING.toFixed(2);
   const currentPetCount = petCountData?.data?.currentCount || 0;
   const maxAllowed = petCountData?.data?.maxAllowed || 5;
   const canOrderMore = petCountData?.data?.canOrderMore || false;
@@ -382,7 +391,7 @@ const Order = () => {
       {/* Title & Subtitle */}
       <div className="mb-8 text-center">
         <div className="font-afacad font-semibold text-[24px] text-[#222] mb-2">Order more tags</div>
-        <div className="font-afacad text-[15px] text-[#636363]">You are on the Premium Plus plan, so you can order as many tags as you need.</div>
+        <div className="font-afacad text-[15px] text-[#636363]">You can protect up to 5 pets with digital tails!</div>
         
         {/* Pet Limit Status */}
         {!petCountLoading && (
@@ -458,11 +467,15 @@ const Order = () => {
           </div>
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#636363]">
             <span>Shipping & Handling</span>
-            <span>€{SHIPPING.toFixed(2)}</span>
+            <span>
+              {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+            </span>
           </div>
           <div className="flex justify-between items-center py-3 font-afacad font-semibold text-[16px] text-[#222]">
             <span>Total</span>
-            <span>€{total}</span>
+            <span>
+              {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+            </span>
           </div>
         </div>
 
@@ -487,7 +500,7 @@ const Order = () => {
           <PaymentForm
             quantity={quantity}
             petName={petName}
-            totalCost={SHIPPING}
+            totalCost={shippingPrice}
             tagColor={formData.tagColor}
             phone={formData.phone}
             street={formData.street}
