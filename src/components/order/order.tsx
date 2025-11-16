@@ -4,7 +4,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
 
-const TAG_PRICE = 0; // Tags are free
+// Tag price is now retrieved from LocalizationContext
 
 // Initialize Stripe using environment variable
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISH_KEY || '');
@@ -26,9 +26,11 @@ const PaymentForm = ({
   state, 
   zipCode, 
   country, 
+  countryCode,
   onClose, 
   onSuccess,
-  onFormChange
+  onFormChange,
+  onCountryCodeChange
 }: {
   quantity: number;
   petName: string;
@@ -40,9 +42,11 @@ const PaymentForm = ({
   state: string;
   zipCode: string;
   country: string;
+  countryCode: string;
   onClose: () => void;
   onSuccess: (orderData: any) => void;
   onFormChange: (field: string, value: string) => void;
+  onCountryCodeChange: (code: string) => void;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -76,22 +80,34 @@ const PaymentForm = ({
         return;
       }
 
+      // Combine country code with phone number
+      const fullPhoneNumber = `${countryCode}${phone}`;
+
       // Create order using RTK Query
-      // Backend expects EUR, so convert if needed
-      const totalCostEuro = totalCost.currency === 'GBP' 
-        ? totalCost.amount 
-        : totalCost.currency === 'USD' 
-          ? 2.90 // Convert $9.19 USD to GBP equivalent
-          : totalCost.currency === 'CAD'
-            ? 2.90 // Convert CAD 15.09 to GBP equivalent
-            : 2.90; // Default GBP
+      // Backend expects EUR, so convert from user's currency to EUR
+      // Conversion rates (approximate)
+      const GBP_TO_EUR = 1.17;
+      const USD_TO_EUR = 0.92;
+      const CAD_TO_EUR = 0.68;
+      
+      let totalCostEuro: number;
+      if (totalCost.currency === 'GBP') {
+        totalCostEuro = totalCost.amount * GBP_TO_EUR;
+      } else if (totalCost.currency === 'USD') {
+        totalCostEuro = totalCost.amount * USD_TO_EUR;
+      } else if (totalCost.currency === 'CAD') {
+        totalCostEuro = totalCost.amount * CAD_TO_EUR;
+      } else {
+        // Default to GBP conversion
+        totalCostEuro = totalCost.amount * GBP_TO_EUR;
+      }
 
       const orderResult = await createPetTagOrder({
         quantity,
         petName,
         totalCostEuro: totalCostEuro,
         tagColor,
-        phone,
+        phone: fullPhoneNumber,
         street,
         city,
         state,
@@ -145,7 +161,7 @@ const PaymentForm = ({
             {/* Order Summary */}
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 className="font-afacad font-semibold text-[16px] text-[#222] mb-2">Order Summary</h3>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 space-y-1">
                 <p><strong>Pet Name:</strong> {petName}</p>
                 <p><strong>Quantity:</strong> {quantity} tag(s)</p>
                 <p><strong>Tag Color:</strong> {tagColor}</p>
@@ -176,14 +192,38 @@ const PaymentForm = ({
               <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
                 Phone Number*
               </label>
-              <input
-                type="tel"
-                placeholder="Enter phone number"
-                value={phone}
-                onChange={(e) => onFormChange('phone', e.target.value)}
-                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
-                required
-              />
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => onCountryCodeChange(e.target.value)}
+                  className="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                  style={{ width: '120px' }}
+                >
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+1">+1 (US/CA)</option>
+                  <option value="+92">+92 (PK)</option>
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+86">+86 (CN)</option>
+                  <option value="+81">+81 (JP)</option>
+                  <option value="+33">+33 (FR)</option>
+                  <option value="+49">+49 (DE)</option>
+                  <option value="+39">+39 (IT)</option>
+                  <option value="+34">+34 (ES)</option>
+                  <option value="+7">+7 (RU)</option>
+                  <option value="+61">+61 (AU)</option>
+                  <option value="+27">+27 (ZA)</option>
+                  <option value="+55">+55 (BR)</option>
+                  <option value="+52">+52 (MX)</option>
+                </select>
+                <input
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={phone}
+                  onChange={(e) => onFormChange('phone', e.target.value)}
+                  className="flex-1 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                  required
+                />
+              </div>
             </div>
 
             {/* Street Address */}
@@ -322,6 +362,7 @@ const Order = () => {
   const [quantity, setQuantity] = useState(1);
   const [petName, setPetName] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [countryCode, setCountryCode] = useState('+44');
   const [formData, setFormData] = useState({
     tagColor: '',
     phone: '',
@@ -334,7 +375,11 @@ const Order = () => {
 
   // Get user's pet count for limit validation
   const { data: petCountData, isLoading: petCountLoading } = useGetUserPetCountQuery();
-  const { shippingPrice, isLocalizing } = useLocalization();
+  const { shippingPrice, tagPrice, isLocalizing } = useLocalization();
+  
+  // Calculate totals
+  const tagSubtotal = tagPrice.amount * quantity;
+  const totalAmount = tagSubtotal + shippingPrice.amount;
   
   const currentPetCount = petCountData?.data?.currentCount || 0;
   const maxAllowed = petCountData?.data?.maxAllowed || 5;
@@ -375,6 +420,7 @@ const Order = () => {
     // Reset form
     setQuantity(1);
     setPetName('');
+    setCountryCode('+44');
     setFormData({
       tagColor: '',
       phone: '',
@@ -462,8 +508,8 @@ const Order = () => {
         {/* Order Summary */}
         <div className="divide-y divide-[#E0E0E0] mb-6">
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#222]">
-            <span>{quantity}x Digital Tails Tag</span>
-            <span className="text-green-600 font-semibold">FREE</span>
+            <span>{quantity}x Digital Tails Tag @ {isLocalizing ? '...' : `${tagPrice.symbol}${tagPrice.amount.toFixed(2)}`}</span>
+            <span>{isLocalizing ? '...' : `${tagPrice.symbol}${tagSubtotal.toFixed(2)}`}</span>
           </div>
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#636363]">
             <span>Shipping & Handling</span>
@@ -474,7 +520,7 @@ const Order = () => {
           <div className="flex justify-between items-center py-3 font-afacad font-semibold text-[16px] text-[#222]">
             <span>Total</span>
             <span>
-              {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+              {isLocalizing ? '...' : `${tagPrice.symbol}${totalAmount.toFixed(2)}`}
             </span>
           </div>
         </div>
@@ -500,7 +546,7 @@ const Order = () => {
           <PaymentForm
             quantity={quantity}
             petName={petName}
-            totalCost={shippingPrice}
+            totalCost={{ amount: totalAmount, currency: tagPrice.currency, symbol: tagPrice.symbol }}
             tagColor={formData.tagColor}
             phone={formData.phone}
             street={formData.street}
@@ -508,9 +554,11 @@ const Order = () => {
             state={formData.state}
             zipCode={formData.zipCode}
             country={formData.country}
+            countryCode={countryCode}
             onClose={() => setShowModal(false)}
             onSuccess={handleOrderSuccess}
             onFormChange={handleFormChange}
+            onCountryCodeChange={setCountryCode}
           />
         </Elements>
       )}
