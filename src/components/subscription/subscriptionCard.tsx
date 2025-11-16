@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, RotateCcw, TrendingUp } from 'lucide-react';
 import { useGetUserSubscriptionsQuery, useGetSubscriptionStatsQuery, useRenewSubscriptionMutation, useUpgradeSubscriptionMutation } from '../../apis/user/qrcode';
+import { useLocalization } from '../../context/LocalizationContext';
 import PaymentModal from './PaymentModal';
 import PlanSelectionModal from './PlanSelectionModal';
 
@@ -24,21 +25,19 @@ const SubscriptionCard: React.FC = () => {
   // Mutations
   const [renewSubscription] = useRenewSubscriptionMutation();
   const [upgradeSubscription] = useUpgradeSubscriptionMutation();
+  const { subscriptionPrices } = useLocalization();
 
   // Handler functions
   const handleRenew = async () => {
     if (!primarySubscription) return;
     
-    const pricing = {
-      monthly: 2.75,
-      yearly: 28.99
-    };
+    const priceInfo = subscriptionPrices[primarySubscription.type as 'monthly' | 'yearly'];
 
     setPaymentData({
       subscriptionId: primarySubscription._id,
       subscriptionType: primarySubscription.type,
-      amount: pricing[primarySubscription.type as keyof typeof pricing],
-      currency: 'GBP',
+      amount: priceInfo.amount,
+      currency: priceInfo.currency,
       action: 'renewal'
     });
     setShowPaymentModal(true);
@@ -51,17 +50,13 @@ const SubscriptionCard: React.FC = () => {
   const handleSelectPlan = async (planType: string) => {
     if (!primarySubscription) return;
     
-    const pricing = {
-      monthly: 2.75,
-      yearly: 28.99,
-      lifetime: 129.99
-    };
+    const priceInfo = subscriptionPrices[planType as 'monthly' | 'yearly' | 'lifetime'];
 
     setPaymentData({
       subscriptionId: primarySubscription._id,
       subscriptionType: primarySubscription.type,
-      amount: pricing[planType as keyof typeof pricing],
-      currency: 'GBP',
+      amount: priceInfo.amount,
+      currency: priceInfo.currency,
       action: 'upgrade',
       newType: planType
     });

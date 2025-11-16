@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useConfirmQRSubscriptionPaymentMutation } from '../../apis/user/qrcode';
+import { useLocalization } from '../../context/LocalizationContext';
 import toast from 'react-hot-toast';
 
 // Get Stripe publishable key from environment
@@ -36,11 +37,30 @@ const SubscriptionForm: React.FC<{
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   const [confirmQRSubscriptionPayment] = useConfirmQRSubscriptionPaymentMutation();
+  const { subscriptionPrices, isLocalizing } = useLocalization();
 
   const pricing = {
-    monthly: { price: 2.75, label: 'Monthly', description: 'Billed every month' },
-    yearly: { price: 28.99, label: 'Yearly', description: 'Billed every year' },
-    lifetime: { price: 129.99, label: 'Lifetime', description: 'One-time payment' }
+    monthly: { 
+      price: subscriptionPrices.monthly.amount, 
+      currency: subscriptionPrices.monthly.currency,
+      symbol: subscriptionPrices.monthly.symbol,
+      label: 'Monthly', 
+      description: 'Billed every month' 
+    },
+    yearly: { 
+      price: subscriptionPrices.yearly.amount, 
+      currency: subscriptionPrices.yearly.currency,
+      symbol: subscriptionPrices.yearly.symbol,
+      label: 'Yearly', 
+      description: 'Billed every year' 
+    },
+    lifetime: { 
+      price: subscriptionPrices.lifetime.amount, 
+      currency: subscriptionPrices.lifetime.currency,
+      symbol: subscriptionPrices.lifetime.symbol,
+      label: 'Lifetime', 
+      description: 'One-time payment' 
+    }
   };
 
   const handleSubscriptionSelect = async (type: 'monthly' | 'yearly' | 'lifetime') => {
@@ -140,7 +160,7 @@ const SubscriptionForm: React.FC<{
             </div>
             <div className="text-right">
               <p className="text-xl font-bold text-blue-600">
-                £{pricing[subscriptionType].price}
+                {isLocalizing ? '...' : `${pricing[subscriptionType].symbol}${pricing[subscriptionType].price.toFixed(2)}`}
               </p>
             </div>
           </div>
@@ -197,7 +217,7 @@ const SubscriptionForm: React.FC<{
               disabled={!stripe || loading}
               className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : `Pay £${pricing[subscriptionType].price}`}
+              {loading ? 'Processing...' : isLocalizing ? 'Loading...' : `Pay ${pricing[subscriptionType].symbol}${pricing[subscriptionType].price.toFixed(2)}`}
             </button>
           </div>
         </form>
@@ -238,9 +258,13 @@ const SubscriptionForm: React.FC<{
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-blue-600">£{details.price}</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {isLocalizing ? '...' : `${details.symbol}${details.price.toFixed(2)}`}
+                </p>
                 {type === 'yearly' && (
-                  <p className="text-sm text-green-600">Save £4.01</p>
+                  <p className="text-sm text-green-600">
+                    {isLocalizing ? '...' : `Save ${details.symbol}${(details.price - pricing.monthly.price * 12).toFixed(2)}`}
+                  </p>
                 )}
                 {type === 'lifetime' && (
                   <p className="text-sm text-green-600">Best Value</p>

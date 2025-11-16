@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Check, Crown, Calendar, Infinity } from 'lucide-react';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface PlanSelectionModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
   onSelectPlan
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<string>('');
+  const { subscriptionPrices, isLocalizing } = useLocalization();
 
   if (!isOpen) return null;
 
@@ -22,8 +24,9 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
     {
       type: 'monthly',
       name: 'Monthly Plan',
-      price: 2.75,
-      currency: 'GBP',
+      price: subscriptionPrices.monthly.amount,
+      currency: subscriptionPrices.monthly.currency,
+      symbol: subscriptionPrices.monthly.symbol,
       period: 'per month',
       icon: Calendar,
       description: 'Perfect for trying out our service',
@@ -32,8 +35,9 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
     {
       type: 'yearly',
       name: 'Yearly Plan',
-      price: 28.99,
-      currency: 'GBP',
+      price: subscriptionPrices.yearly.amount,
+      currency: subscriptionPrices.yearly.currency,
+      symbol: subscriptionPrices.yearly.symbol,
       period: 'per year',
       icon: Calendar,
       description: 'Best value for regular users',
@@ -42,8 +46,9 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
     {
       type: 'lifetime',
       name: 'Lifetime Plan',
-      price: 129.99,
-      currency: 'GBP',
+      price: subscriptionPrices.lifetime.amount,
+      currency: subscriptionPrices.lifetime.currency,
+      symbol: subscriptionPrices.lifetime.symbol,
       period: 'one-time',
       icon: Crown,
       description: 'Never worry about renewals again',
@@ -145,7 +150,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
 
                     <div className="mb-4">
                       <span className="font-afacad font-bold text-[32px] text-[#222]">
-                        {plan.currency} {plan.price}
+                        {isLocalizing ? '...' : `${plan.symbol}${plan.price.toFixed(2)}`}
                       </span>
                       <span className="font-afacad text-[14px] text-[#636363] ml-1">
                         {plan.period}
