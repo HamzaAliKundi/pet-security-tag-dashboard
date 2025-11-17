@@ -94,7 +94,8 @@ const PaymentForm: React.FC<{
           subscriptionId,
           paymentIntentId: paymentIntent.id,
           action,
-          newType
+          newType,
+          amount: amount
         }).unwrap();
 
         toast.success(`Subscription ${action} successful!`);

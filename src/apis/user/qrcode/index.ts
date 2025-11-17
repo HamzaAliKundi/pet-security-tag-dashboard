@@ -64,7 +64,7 @@ export const qrcodeApi = createApi({
     }),
 
     // Get user's subscriptions
-    getUserSubscriptions: builder.query<any, { page?: number; limit?: number }>({
+    getUserSubscriptions: builder.query<any, { page?: number; limit?: number; includeAll?: string }>({
       query: (params) => ({
         url: "/user/subscriptions",
         method: "GET",
@@ -117,6 +117,7 @@ export const qrcodeApi = createApi({
       paymentIntentId: string; 
       action: string; 
       newType?: string; 
+      amount: number;
     }>({
       query: (data) => ({
         url: "/user/subscriptions/confirm-payment",
