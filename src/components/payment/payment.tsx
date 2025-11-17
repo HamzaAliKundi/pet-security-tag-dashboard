@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { useGetPetTagOrdersQuery } from '../../apis/user/users';
 import { useGetUserSubscriptionsQuery } from '../../apis/user/qrcode';
+import { useLocalization } from '../../context/LocalizationContext';
 
 // Custom CSS for 800px breakpoint
 // Add this to your global CSS (e.g., index.css):
@@ -10,9 +11,11 @@ import { useGetUserSubscriptionsQuery } from '../../apis/user/qrcode';
 // }
 
 const Payment = () => {
+  const { subscriptionPrices } = useLocalization();
   // Fetch payment history from API
   const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useGetPetTagOrdersQuery({ page: 1, limit: 50 });
-  const { data: subscriptionsData, isLoading: subscriptionsLoading, error: subscriptionsError } = useGetUserSubscriptionsQuery({ page: 1, limit: 50 });
+  // Include all subscriptions (active and expired) for payment history
+  const { data: subscriptionsData, isLoading: subscriptionsLoading, error: subscriptionsError } = useGetUserSubscriptionsQuery({ page: 1, limit: 50, includeAll: 'true' });
   
   // Combine and sort payment data
   const paymentData = useMemo(() => {
@@ -24,11 +27,12 @@ const Payment = () => {
       _id: sub._id,
       paymentIntentId: sub.paymentIntentId || `SUB-${sub._id.slice(-8)}`,
       createdAt: sub.createdAt,
-      totalCostEuro: sub.amountPaid,
+      totalCostEuro: sub.amountPaid || 0, // Ensure we have a number, default to 0 if undefined/null
       status: sub.status === 'active' ? 'paid' : sub.status,
       type: 'subscription',
       subscriptionType: sub.type,
-      endDate: sub.endDate
+      endDate: sub.endDate,
+      currency: sub.currency || 'gbp' // Store the currency for subscriptions
     }));
     
     // Transform orders to include type
@@ -51,9 +55,53 @@ const Payment = () => {
     return date.toLocaleDateString('en-GB'); // DD/MM/YY format
   };
   
-  // Format amount function
-  const formatAmount = (amount: number) => {
-    return `£${amount.toFixed(2)}`;
+  // Format amount function - handle subscriptions and orders differently
+  const formatAmount = (amount: number | null | undefined, paymentType?: string, currency?: string) => {
+    if (amount === null || amount === undefined || isNaN(amount) || amount === 0) {
+      const symbol = subscriptionPrices.monthly.symbol || '£';
+      return `${symbol}0.00`;
+    }
+    
+    // For subscriptions: amount is already in the user's currency, just format it
+    if (paymentType === 'subscription' && currency) {
+      // Get currency symbol based on stored currency
+      let symbol = '£';
+      if (currency.toLowerCase() === 'usd') {
+        symbol = '$';
+      } else if (currency.toLowerCase() === 'cad') {
+        symbol = '$';
+      } else if (currency.toLowerCase() === 'gbp') {
+        symbol = '£';
+      } else if (currency.toLowerCase() === 'eur') {
+        symbol = '€';
+      }
+      return `${symbol}${amount.toFixed(2)}`;
+    }
+    
+    // For orders: convert EUR back to user's currency
+    // Conversion rates (same as in order.tsx)
+    const GBP_TO_EUR = 1.17;
+    const USD_TO_EUR = 0.92;
+    const CAD_TO_EUR = 0.68;
+    
+    // Get user's currency from localization context
+    const userCurrency = subscriptionPrices.monthly.currency || 'GBP';
+    const symbol = subscriptionPrices.monthly.symbol || '£';
+    
+    // Convert EUR back to user's currency
+    let convertedAmount: number;
+    if (userCurrency === 'GBP') {
+      convertedAmount = amount / GBP_TO_EUR;
+    } else if (userCurrency === 'USD') {
+      convertedAmount = amount / USD_TO_EUR;
+    } else if (userCurrency === 'CAD') {
+      convertedAmount = amount / CAD_TO_EUR;
+    } else {
+      // Default to GBP conversion
+      convertedAmount = amount / GBP_TO_EUR;
+    }
+    
+    return `${symbol}${convertedAmount.toFixed(2)}`;
   };
   
   // Get status display info
@@ -143,7 +191,7 @@ const Payment = () => {
                       {formatDate(payment.createdAt)}
                     </td>
                     <td className="py-4 font-afacad text-[14px] text-[#222]">
-                      {formatAmount(payment.totalCostEuro)}
+                      {formatAmount(payment.totalCostEuro, payment.type, payment.currency)}
                     </td>
                     <td className="py-4">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-afacad font-medium ${statusInfo.bgColor} ${statusInfo.textColor}`}>

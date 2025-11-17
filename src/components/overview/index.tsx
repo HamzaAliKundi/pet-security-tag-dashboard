@@ -94,10 +94,10 @@ const Overview = () => {
       <div className="w-full max-w-[750px] min-w-[280px] h-auto rounded-[20.84px] shadow-lg bg-white px-[18px] sm:px-[22px] py-[18px] sm:py-[22px] mt-8 flex flex-col justify-center">
         <div className="flex flex-col items-center text-center w-full">
           <div className="font-afacad font-semibold text-[15px] sm:text-[16px] leading-[20.84px] tracking-[0.28px] text-[#313131] mb-2">
-            Get access to a Customer Support 24/7
+            Customer Support
           </div>
           <div className="font-afacad font-normal text-[12px] sm:text-[14px] leading-[100%] tracking-[0.35px] text-[#636363] mb-5">
-            Speak with a customer support whenever you need help with our Digital Tails mobile app.
+            Need Help? We are always here to assist you, get in touch!
           </div>
           <Link
   to="/contact"
