@@ -20,6 +20,7 @@ const PaymentForm = ({
   petName, 
   totalCost, 
   tagColor, 
+  tagColors,
   phone, 
   street, 
   city, 
@@ -30,12 +31,14 @@ const PaymentForm = ({
   onClose, 
   onSuccess,
   onFormChange,
+  onTagColorChange,
   onCountryCodeChange
 }: {
   quantity: number;
   petName: string;
   totalCost: { amount: number; currency: string; symbol: string };
   tagColor: string;
+  tagColors: string[];
   phone: string;
   street: string;
   city: string;
@@ -46,6 +49,7 @@ const PaymentForm = ({
   onClose: () => void;
   onSuccess: (orderData: any) => void;
   onFormChange: (field: string, value: string) => void;
+  onTagColorChange: (index: number, color: string) => void;
   onCountryCodeChange: (code: string) => void;
 }) => {
   const stripe = useStripe();
@@ -102,11 +106,24 @@ const PaymentForm = ({
         totalCostEuro = totalCost.amount * GBP_TO_EUR;
       }
 
+      // Ensure tagColors array matches quantity exactly
+      let finalTagColors: string[];
+      if (quantity === 1) {
+        finalTagColors = [tagColor];
+      } else {
+        if (tagColors.length >= quantity) {
+          finalTagColors = tagColors.slice(0, quantity);
+        } else {
+          finalTagColors = [...tagColors, ...Array(quantity - tagColors.length).fill('blue')];
+        }
+      }
+
       const orderResult = await createPetTagOrder({
         quantity,
         petName,
         totalCostEuro: totalCostEuro,
-        tagColor,
+        tagColor: quantity === 1 ? tagColor : undefined, // Keep for backward compatibility
+        tagColors: finalTagColors, // Array of colors for each tag
         phone: fullPhoneNumber,
         street,
         city,
@@ -164,27 +181,53 @@ const PaymentForm = ({
               <div className="text-sm text-gray-600 space-y-1">
                 <p><strong>Pet Name:</strong> {petName}</p>
                 <p><strong>Quantity:</strong> {quantity} tag(s)</p>
-                <p><strong>Tag Color:</strong> {tagColor}</p>
+                {quantity === 1 ? (
+                  <p><strong>Tag Color:</strong> {tagColor}</p>
+                ) : (
+                  <p><strong>Tag Colors:</strong> {tagColors.slice(0, quantity).join(', ')}</p>
+                )}
                 <p><strong>Total Cost:</strong> {totalCost.symbol}{totalCost.amount.toFixed(2)} {totalCost.currency}</p>
               </div>
             </div>
 
-            {/* Tag Color */}
+            {/* Tag Color Selection */}
             <div>
               <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
-                Tag Color*
+                {quantity === 1 ? 'Tag Color*' : 'Select Color for Each Tag*'}
               </label>
-              <select
-                value={tagColor}
-                onChange={(e) => onFormChange('tagColor', e.target.value)}
-                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
-                required
-              >
-                <option value="">Select tag color</option>
-                <option value="blue">Blue</option>
-                <option value="red">Red</option>
-                <option value="yellow">Yellow</option>
-              </select>
+              {quantity === 1 ? (
+                <select
+                  value={tagColor}
+                  onChange={(e) => onFormChange('tagColor', e.target.value)}
+                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                  required
+                >
+                  <option value="">Select tag color</option>
+                  <option value="blue">Blue</option>
+                  <option value="pink">Pink</option>
+                  <option value="yellow">Yellow</option>
+                </select>
+              ) : (
+                <div className="space-y-3">
+                  {Array.from({ length: quantity }).map((_, index) => (
+                    <div key={index} className="border border-[#E0E0E0] rounded-lg p-3">
+                      <label className="block font-afacad font-semibold text-[13px] text-[#222] mb-2">
+                        Tag {index + 1} Color
+                      </label>
+                      <select
+                        value={tagColors[index] || 'blue'}
+                        onChange={(e) => onTagColorChange(index, e.target.value)}
+                        className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-2 font-afacad text-[14px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                        required
+                      >
+                        <option value="blue">Blue</option>
+                        <option value="pink">Pink</option>
+                        <option value="yellow">Yellow</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Phone Number */}
@@ -200,20 +243,8 @@ const PaymentForm = ({
                   style={{ width: '120px' }}
                 >
                   <option value="+44">+44 (UK)</option>
-                  <option value="+1">+1 (US/CA)</option>
-                  <option value="+92">+92 (PK)</option>
-                  <option value="+91">+91 (IN)</option>
-                  <option value="+86">+86 (CN)</option>
-                  <option value="+81">+81 (JP)</option>
-                  <option value="+33">+33 (FR)</option>
-                  <option value="+49">+49 (DE)</option>
-                  <option value="+39">+39 (IT)</option>
-                  <option value="+34">+34 (ES)</option>
-                  <option value="+7">+7 (RU)</option>
-                  <option value="+61">+61 (AU)</option>
-                  <option value="+27">+27 (ZA)</option>
-                  <option value="+55">+55 (BR)</option>
-                  <option value="+52">+52 (MX)</option>
+                  <option value="+1">+1 (USA)</option>
+                  <option value="+1">+1 (Canada)</option>
                 </select>
                 <input
                   type="tel"
@@ -363,8 +394,9 @@ const Order = () => {
   const [petName, setPetName] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [countryCode, setCountryCode] = useState('+44');
+  const [tagColor, setTagColor] = useState('blue');
+  const [tagColors, setTagColors] = useState<string[]>(['blue']);
   const [formData, setFormData] = useState({
-    tagColor: '',
     phone: '',
     street: '',
     city: '',
@@ -407,11 +439,35 @@ const Order = () => {
     setShowModal(true);
   };
 
+  // Handle quantity changes - update tagColors array
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity > quantity) {
+      // Adding tags - add default color
+      setTagColors(prev => [...prev, ...Array(newQuantity - quantity).fill('blue')]);
+    } else if (newQuantity < quantity) {
+      // Removing tags - remove last colors
+      setTagColors(prev => prev.slice(0, newQuantity));
+    }
+    setQuantity(newQuantity);
+  };
+
   const handleFormChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'tagColor') {
+      setTagColor(value);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleTagColorChange = (index: number, color: string) => {
+    setTagColors(prev => {
+      const newColors = [...prev];
+      newColors[index] = color;
+      return newColors;
+    });
   };
 
   const handleOrderSuccess = (orderData: any) => {
@@ -420,9 +476,10 @@ const Order = () => {
     // Reset form
     setQuantity(1);
     setPetName('');
+    setTagColor('blue');
+    setTagColors(['blue']);
     setCountryCode('+44');
     setFormData({
-      tagColor: '',
       phone: '',
       street: '',
       city: '',
@@ -475,7 +532,7 @@ const Order = () => {
               className={`w-9 h-9 flex items-center justify-center rounded-[8px] border border-[#E0E0E0] bg-white shadow-sm transition ${
                 !canOrderMore || quantity <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#f3f3f3]'
               }`}
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              onClick={() => handleQuantityChange(Math.max(1, quantity - 1))}
               disabled={!canOrderMore || quantity <= 1}
               aria-label="Decrease quantity"
             >
@@ -487,7 +544,7 @@ const Order = () => {
               className={`w-9 h-9 flex items-center justify-center rounded-[8px] shadow-sm transition ${
                 !canOrderMore || quantity >= remainingSlots ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-[#4CB2E2] hover:bg-[#38a1d6]'
               }`}
-              onClick={() => setQuantity(q => Math.min(remainingSlots, q + 1))}
+              onClick={() => handleQuantityChange(Math.min(remainingSlots, quantity + 1))}
               disabled={!canOrderMore || quantity >= remainingSlots}
               aria-label="Increase quantity"
             >
@@ -547,7 +604,8 @@ const Order = () => {
             quantity={quantity}
             petName={petName}
             totalCost={{ amount: totalAmount, currency: tagPrice.currency, symbol: tagPrice.symbol }}
-            tagColor={formData.tagColor}
+            tagColor={tagColor}
+            tagColors={tagColors}
             phone={formData.phone}
             street={formData.street}
             city={formData.city}
@@ -558,6 +616,7 @@ const Order = () => {
             onClose={() => setShowModal(false)}
             onSuccess={handleOrderSuccess}
             onFormChange={handleFormChange}
+            onTagColorChange={handleTagColorChange}
             onCountryCodeChange={setCountryCode}
           />
         </Elements>

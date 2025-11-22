@@ -2,7 +2,8 @@ export interface PetTagOrderRequest {
   quantity: number;
   petName: string;
   totalCostEuro: number;
-  tagColor: string;
+  tagColor?: string; // Keep for backward compatibility
+  tagColors?: string[]; // Array of colors for each tag (when quantity > 1)
   phone: string;
   street: string;
   city: string;
