@@ -64,6 +64,25 @@ const PaymentForm: React.FC<{
     setIsProcessing(true);
 
     try {
+      // Create payment method first (to save card for future use)
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        toast.error('Card element not found');
+        setIsProcessing(false);
+        return;
+      }
+
+      const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+      });
+
+      if (pmError || !paymentMethod) {
+        toast.error(pmError?.message || 'Failed to create payment method');
+        setIsProcessing(false);
+        return;
+      }
+
       // Create payment intent
       const paymentIntentResponse = action === 'renewal' 
         ? await renewSubscription({ subscriptionId }).unwrap()
@@ -73,13 +92,11 @@ const PaymentForm: React.FC<{
         throw new Error('Failed to create payment intent');
       }
 
-      // Confirm payment with Stripe
+      // Confirm payment with Stripe using the payment method
       const { error, paymentIntent } = await stripe.confirmCardPayment(
         paymentIntentResponse.payment.clientSecret,
         {
-          payment_method: {
-            card: elements.getElement(CardElement)!,
-          }
+          payment_method: paymentMethod.id,
         }
       );
 
@@ -89,13 +106,14 @@ const PaymentForm: React.FC<{
       }
 
       if (paymentIntent?.status === 'succeeded') {
-        // Confirm payment on backend
+        // Confirm payment on backend and save payment method
         await confirmPayment({
           subscriptionId,
           paymentIntentId: paymentIntent.id,
           action,
           newType,
-          amount: amount
+          amount: amount,
+          paymentMethodId: paymentMethod.id // Pass payment method ID to save card
         }).unwrap();
 
         toast.success(`Subscription ${action} successful!`);
