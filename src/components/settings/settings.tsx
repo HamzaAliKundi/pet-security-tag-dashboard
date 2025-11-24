@@ -123,6 +123,7 @@ const Settings = () => {
 
   const handleDeleteAccount = async () => {
     try {
+      // @ts-ignore
       await deleteAccount().unwrap();
       toast.success('Your account has been deleted successfully.');
       localStorage.removeItem('token');
@@ -307,21 +308,9 @@ const Settings = () => {
                 }`}
                 style={{ width: '120px' }}
               >
-                <option value="+1">+1 (US/CA)</option>
-                <option value="+44">+44 (UK)</option>
-                <option value="+92">+92 (PK)</option>
-                <option value="+91">+91 (IN)</option>
-                <option value="+86">+86 (CN)</option>
-                <option value="+81">+81 (JP)</option>
-                <option value="+33">+33 (FR)</option>
-                <option value="+49">+49 (DE)</option>
-                <option value="+39">+39 (IT)</option>
-                <option value="+34">+34 (ES)</option>
-                <option value="+7">+7 (RU)</option>
-                <option value="+61">+61 (AU)</option>
-                <option value="+27">+27 (ZA)</option>
-                <option value="+55">+55 (BR)</option>
-                <option value="+52">+52 (MX)</option>
+               <option value="+44">+44 (UK)</option>
+                <option value="+1">+1 (USA)</option>
+                 <option value="+1">+1 (Canada)</option>
               </select>
               <input
                 id="phone"
