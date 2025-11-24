@@ -34,7 +34,9 @@ const SubscriptionForm: React.FC<{
   const [loading, setLoading] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string>('');
   const [clientSecret, setClientSecret] = useState<string>('');
+  const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string>('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [isSubscriptionMode, setIsSubscriptionMode] = useState(false);
 
   const [confirmQRSubscriptionPayment] = useConfirmQRSubscriptionPaymentMutation();
   const { subscriptionPrices, isLocalizing } = useLocalization();
@@ -65,44 +67,52 @@ const SubscriptionForm: React.FC<{
 
   const handleSubscriptionSelect = async (type: 'monthly' | 'yearly' | 'lifetime') => {
     setSubscriptionType(type);
-    setLoading(true);
+    
+    // For monthly/yearly: Show payment form first to collect payment method for auto-renewal
+    // For lifetime: Create payment intent first (one-time payment)
+    if (type === 'monthly' || type === 'yearly') {
+      setIsSubscriptionMode(true);
+      setShowPaymentForm(true);
+    } else {
+      // Lifetime: Create payment intent first
+      setLoading(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            qrCodeId: qrCode.id,
+            subscriptionType: type,
+            enableAutoRenew: false, // Lifetime doesn't auto-renew
+          }),
+        });
 
-    try {
-      // This would call your backend to create a payment intent
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          qrCodeId: qrCode.id,
-          subscriptionType: type,
-        }),
-      });
+        const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.payment) {
-        setPaymentIntentId(data.payment.paymentIntentId);
-        setClientSecret(data.payment.clientSecret);
-        setShowPaymentForm(true);
-      } else {
-        throw new Error(data.message || 'Failed to create payment intent');
+        if (data.payment) {
+          setPaymentIntentId(data.payment.paymentIntentId || '');
+          setClientSecret(data.payment.clientSecret);
+          setIsSubscriptionMode(false);
+          setShowPaymentForm(true);
+        } else {
+          throw new Error(data.message || 'Failed to create payment intent');
+        }
+      } catch (error: any) {
+        console.error('Payment intent creation error:', error);
+        toast.error(error.message || 'Failed to initialize payment');
+      } finally {
+        setLoading(false);
       }
-    } catch (error: any) {
-      console.error('Payment intent creation error:', error);
-      toast.error(error.message || 'Failed to initialize payment');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handlePaymentSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements || !clientSecret) {
-      console.error('Stripe not ready:', { stripe: !!stripe, elements: !!elements, clientSecret: !!clientSecret });
+    if (!stripe || !elements) {
       toast.error('Payment system not ready. Please try again.');
       return;
     }
@@ -118,30 +128,118 @@ const SubscriptionForm: React.FC<{
     }
 
     try {
-      // Confirm payment with Stripe
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
+      if (isSubscriptionMode && (subscriptionType === 'monthly' || subscriptionType === 'yearly')) {
+        // For monthly/yearly: Create payment method first, then create subscription
+        const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+          type: 'card',
           card: cardElement,
-        },
-      });
+        });
 
-      if (error) {
-        console.error('Payment confirmation error:', error);
-        toast.error(error.message || 'Payment failed');
-      } else if (paymentIntent.status === 'succeeded') {
-        // Confirm with backend
-        await confirmQRSubscriptionPayment({
-          qrCodeId: qrCode.id,
-          paymentIntentId: paymentIntent.id,
-          subscriptionType,
-        }).unwrap();
+        if (pmError || !paymentMethod) {
+          toast.error(pmError?.message || 'Failed to create payment method');
+          setLoading(false);
+          return;
+        }
 
-        toast.success('Payment successful! QR code activated.');
-        onSuccess(subscriptionType);
+        // Create subscription with payment method
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            qrCodeId: qrCode.id,
+            subscriptionType,
+            paymentMethodId: paymentMethod.id,
+            enableAutoRenew: true,
+          }),
+        });
+
+        const data = await response.json();
+        console.log('Subscription creation response:', data);
+
+        // Check for clientSecret in multiple possible locations
+        const clientSecret = data.subscription?.clientSecret || data.payment?.clientSecret;
+        const subscriptionId = data.subscription?.subscriptionId;
+
+        if (clientSecret && subscriptionId) {
+          console.log('Confirming subscription payment with clientSecret...');
+          // Confirm subscription payment
+          const { error, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret,
+            {
+              payment_method: paymentMethod.id,
+            }
+          );
+
+          if (error) {
+            console.error('Payment confirmation error:', error);
+            toast.error(error.message || 'Payment failed');
+            setLoading(false);
+            return;
+          }
+
+          console.log('Payment intent status:', paymentIntent?.status);
+
+          if (paymentIntent?.status === 'succeeded') {
+            console.log('Payment succeeded, confirming with backend...');
+            // Confirm with backend
+            try {
+              await confirmQRSubscriptionPayment({
+                qrCodeId: qrCode.id,
+                paymentIntentId: paymentIntent.id,
+                subscriptionType,
+                stripeSubscriptionId: subscriptionId,
+              }).unwrap();
+
+              console.log('Subscription confirmed successfully');
+              toast.success('Subscription created! Auto-renewal enabled. QR code activated.');
+              onSuccess(subscriptionType);
+            } catch (confirmError: any) {
+              console.error('Backend confirmation error:', confirmError);
+              toast.error(confirmError?.data?.message || 'Failed to confirm subscription');
+            }
+          } else {
+            console.warn('Payment intent status is not succeeded:', paymentIntent?.status);
+            toast.error('Payment not completed. Please try again.');
+          }
+        } else {
+          console.error('Missing clientSecret or subscriptionId:', { clientSecret, subscriptionId, data });
+          throw new Error(data.message || 'Failed to create subscription - missing payment details');
+        }
+      } else {
+        // For lifetime or payment intent flow: Confirm payment directly
+        if (!clientSecret) {
+          toast.error('Payment not initialized');
+          setLoading(false);
+          return;
+        }
+
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+          },
+        });
+
+        if (error) {
+          console.error('Payment confirmation error:', error);
+          toast.error(error.message || 'Payment failed');
+        } else if (paymentIntent?.status === 'succeeded') {
+          // Confirm with backend
+          await confirmQRSubscriptionPayment({
+            qrCodeId: qrCode.id,
+            paymentIntentId: paymentIntent.id,
+            subscriptionType,
+          }).unwrap();
+
+          toast.success('Payment successful! QR code activated.');
+          onSuccess(subscriptionType);
+        }
       }
     } catch (error: any) {
       console.error('Payment processing error:', error);
-      toast.error(error.data?.message || 'Payment processing failed');
+      toast.error(error.data?.message || error.message || 'Payment processing failed');
     } finally {
       setLoading(false);
     }

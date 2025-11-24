@@ -102,7 +102,7 @@ const SubscriptionCard: React.FC = () => {
     );
   }
 
-  const { type, daysRemaining, isExpiringSoon, endDate, amountPaid, currency } = primarySubscription;
+  const { type, daysRemaining, isExpiringSoon, endDate, amountPaid, currency, autoRenew } = primarySubscription;
   
   const getSubscriptionTypeDisplay = (type: string) => {
     switch (type) {
@@ -168,6 +168,18 @@ const SubscriptionCard: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* Auto-Renewal Status */}
+          {autoRenew && type !== 'lifetime' && daysRemaining > 0 && (
+            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg max-w-[calc(100%-180px)] sm:max-w-[calc(100%-200px)]">
+              <div className="flex items-center">
+                <Check className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+                <span className="font-afacad text-[12px] text-green-700 break-words">
+                  Auto-renewal enabled • Your subscription will automatically renew on {formatDate(endDate)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-end space-y-2">

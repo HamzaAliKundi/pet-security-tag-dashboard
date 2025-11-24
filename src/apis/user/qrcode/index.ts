@@ -54,6 +54,7 @@ export const qrcodeApi = createApi({
       paymentIntentId: string;
       subscriptionType: 'monthly' | 'yearly' | 'lifetime';
       petId?: string;
+      stripeSubscriptionId?: string;
     }>({
       query: (data) => ({
         url: "/qr/confirm-subscription",
@@ -118,6 +119,7 @@ export const qrcodeApi = createApi({
       action: string; 
       newType?: string; 
       amount: number;
+      paymentMethodId?: string;
     }>({
       query: (data) => ({
         url: "/user/subscriptions/confirm-payment",
