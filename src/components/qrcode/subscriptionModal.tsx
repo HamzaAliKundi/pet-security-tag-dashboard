@@ -77,6 +77,7 @@ const SubscriptionForm: React.FC<{
       // Lifetime: Create payment intent first
       setLoading(true);
       try {
+        const selectedPricing = pricing[type];
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
           method: 'POST',
           headers: {
@@ -87,6 +88,8 @@ const SubscriptionForm: React.FC<{
             qrCodeId: qrCode.id,
             subscriptionType: type,
             enableAutoRenew: false, // Lifetime doesn't auto-renew
+            amount: selectedPricing.price,
+            currency: selectedPricing.currency.toLowerCase(),
           }),
         });
 
@@ -142,6 +145,7 @@ const SubscriptionForm: React.FC<{
         }
 
         // Create subscription with payment method
+        const selectedPricing = pricing[subscriptionType];
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
           method: 'POST',
           headers: {
@@ -153,6 +157,8 @@ const SubscriptionForm: React.FC<{
             subscriptionType,
             paymentMethodId: paymentMethod.id,
             enableAutoRenew: true,
+            amount: selectedPricing.price,
+            currency: selectedPricing.currency.toLowerCase(),
           }),
         });
 
@@ -186,11 +192,14 @@ const SubscriptionForm: React.FC<{
             console.log('Payment succeeded, confirming with backend...');
             // Confirm with backend
             try {
+              const selectedPricing = pricing[subscriptionType];
               await confirmQRSubscriptionPayment({
                 qrCodeId: qrCode.id,
                 paymentIntentId: paymentIntent.id,
                 subscriptionType,
                 stripeSubscriptionId: subscriptionId,
+                amount: selectedPricing.price,
+                currency: selectedPricing.currency.toLowerCase(),
               }).unwrap();
 
               console.log('Subscription confirmed successfully');
@@ -227,10 +236,13 @@ const SubscriptionForm: React.FC<{
           toast.error(error.message || 'Payment failed');
         } else if (paymentIntent?.status === 'succeeded') {
           // Confirm with backend
+          const selectedPricing = pricing[subscriptionType];
           await confirmQRSubscriptionPayment({
             qrCodeId: qrCode.id,
             paymentIntentId: paymentIntent.id,
             subscriptionType,
+            amount: selectedPricing.price,
+            currency: selectedPricing.currency.toLowerCase(),
           }).unwrap();
 
           toast.success('Payment successful! QR code activated.');

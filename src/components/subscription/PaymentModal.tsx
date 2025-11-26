@@ -86,7 +86,12 @@ const PaymentForm: React.FC<{
       // Create payment intent
       const paymentIntentResponse = action === 'renewal' 
         ? await renewSubscription({ subscriptionId }).unwrap()
-        : await upgradeSubscription({ subscriptionId, newType: newType! }).unwrap();
+        : await upgradeSubscription({ 
+            subscriptionId, 
+            newType: newType!,
+            amount: amount,
+            currency: currency.toLowerCase()
+          }).unwrap();
 
       if (!paymentIntentResponse.payment?.clientSecret) {
         throw new Error('Failed to create payment intent');
@@ -113,6 +118,7 @@ const PaymentForm: React.FC<{
           action,
           newType,
           amount: amount,
+          currency: currency.toLowerCase(),
           paymentMethodId: paymentMethod.id // Pass payment method ID to save card
         }).unwrap();
 
