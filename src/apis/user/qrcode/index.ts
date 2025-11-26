@@ -55,6 +55,8 @@ export const qrcodeApi = createApi({
       subscriptionType: 'monthly' | 'yearly' | 'lifetime';
       petId?: string;
       stripeSubscriptionId?: string;
+      amount?: number;
+      currency?: string;
     }>({
       query: (data) => ({
         url: "/qr/confirm-subscription",
@@ -103,7 +105,7 @@ export const qrcodeApi = createApi({
     }),
 
     // Upgrade subscription
-    upgradeSubscription: builder.mutation<any, { subscriptionId: string; newType: string }>({
+    upgradeSubscription: builder.mutation<any, { subscriptionId: string; newType: string; amount?: number; currency?: string }>({
       query: (data) => ({
         url: "/user/subscriptions/upgrade",
         method: "POST",
@@ -119,6 +121,7 @@ export const qrcodeApi = createApi({
       action: string; 
       newType?: string; 
       amount: number;
+      currency?: string;
       paymentMethodId?: string;
     }>({
       query: (data) => ({
