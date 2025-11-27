@@ -154,7 +154,7 @@ const ViewPetModal: React.FC<ViewPetModalProps> = ({ isOpen, pet, onClose }) => 
                       <rect x="14" y="14" width="3" height="3"/>
                     </svg>
                     <p className="font-afacad text-[14px] text-gray-500">QR Code not available</p>
-                    <p className="font-afacad text-[12px] text-gray-400 mt-1">Complete your order to generate QR code</p>
+                    <p className="font-afacad text-[12px] text-gray-400 mt-1">Scan your tag to assign QR code</p>
                   </div>
                 </div>
               )}

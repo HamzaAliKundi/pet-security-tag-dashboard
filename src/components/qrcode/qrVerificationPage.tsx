@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetQRVerificationDetailsQuery, useAutoVerifyQRCodeMutation, useVerifyQRWithSubscriptionMutation } from '../../apis/user/qrcode';
 import SubscriptionModal from './subscriptionModal';
@@ -18,42 +18,7 @@ const QRVerificationPage: React.FC = () => {
   const [autoVerifyQRCode] = useAutoVerifyQRCodeMutation();
   const [verifyQRCode] = useVerifyQRWithSubscriptionMutation();
 
-  useEffect(() => {
-    if (qrDetails) {
-      // Check if user is logged in (has token)
-      const token = localStorage.getItem('token');
-      
-      console.log('QR Details:', qrDetails);
-      console.log('Token exists:', !!token);
-      
-      if (qrDetails.isVerified && qrDetails.hasActiveSubscription) {
-        // Already verified with active subscription
-        console.log('QR already verified with active subscription');
-        toast.success('QR code is already verified and active!');
-        navigate('/overview');
-      } else if (!token) {
-        // User is not logged in - redirect to login
-        console.log('User not logged in, redirecting to login');
-        toast.error('Please log in to verify this QR code');
-        navigate('/', { state: { redirectTo: `/qr/verify/${code}` } });
-      } else if (!qrDetails.isVerified && qrDetails.canAutoVerify) {
-        // User is logged in, QR needs verification, and user has active subscription
-        console.log('Auto-verifying QR code');
-        handleAutoVerification();
-      } else if (!qrDetails.isVerified && token) {
-        // User is logged in and QR needs verification - show subscription modal
-        // This handles both cases: user has no subscription or QR is not assigned to user
-        console.log('Showing subscription modal for logged-in user');
-        setShowSubscriptionModal(true);
-      } else {
-        // Fallback case - show subscription modal
-        console.log('Fallback case - showing subscription modal');
-        setShowSubscriptionModal(true);
-      }
-    }
-  }, [qrDetails, navigate, code]);
-
-  const handleAutoVerification = async () => {
+  const handleAutoVerification = useCallback(async () => {
     try {
       if (!qrDetails?.qrCode?.id) {
         toast.error('QR code information not available');
@@ -64,7 +29,7 @@ const QRVerificationPage: React.FC = () => {
         qrCodeId: qrDetails.qrCode.id,
       }).unwrap();
 
-      toast.success('QR code verified automatically with your existing subscription!');
+      toast.success(result.message || 'QR code verified automatically with your existing subscription!');
       navigate('/overview');
     } catch (error: any) {
       console.error('Auto-verification error:', error);
@@ -72,7 +37,55 @@ const QRVerificationPage: React.FC = () => {
       // Fallback to showing subscription modal
       setShowSubscriptionModal(true);
     }
-  };
+  }, [qrDetails?.qrCode?.id, autoVerifyQRCode, navigate]);
+
+  useEffect(() => {
+    if (qrDetails) {
+      // Check if user is logged in (has token)
+      const token = localStorage.getItem('token');
+      
+      console.log('QR Details:', qrDetails);
+      console.log('Token exists:', !!token);
+      console.log('canAutoVerify:', qrDetails.canAutoVerify);
+      console.log('hasActiveSubscription:', qrDetails.hasActiveSubscription);
+      
+      if (qrDetails.isVerified && qrDetails.hasActiveSubscription) {
+        // Already verified with active subscription
+        console.log('QR already verified with active subscription');
+        toast.success('QR code is already verified and active!');
+        navigate('/overview');
+        return;
+      }
+      
+      if (!token) {
+        // User is not logged in - redirect to login
+        console.log('User not logged in, redirecting to login');
+        toast.error('Please log in to verify this QR code');
+        navigate('/', { state: { redirectTo: `/qr/verify/${code}` } });
+        return;
+      }
+      
+      // User is logged in - check if they can auto-verify
+      if (!qrDetails.isVerified && qrDetails.canAutoVerify) {
+        // User is logged in, QR needs verification, and user has active subscription
+        // Auto-verify immediately without showing payment modal
+        console.log('Auto-verifying QR code - user has active subscription');
+        handleAutoVerification();
+        return;
+      }
+      
+      // User is logged in but cannot auto-verify - show subscription modal
+      if (!qrDetails.isVerified && token) {
+        console.log('Showing subscription modal - user needs to subscribe');
+        setShowSubscriptionModal(true);
+        return;
+      }
+      
+      // Fallback case
+      console.log('Fallback case - showing subscription modal');
+      setShowSubscriptionModal(true);
+    }
+  }, [qrDetails, navigate, code, handleAutoVerification]);
 
   const handleSubscriptionSuccess = async (subscriptionType: 'monthly' | 'yearly' | 'lifetime', petId?: string) => {
     try {
