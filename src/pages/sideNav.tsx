@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { FiGrid, FiUser, FiHeadphones, FiCreditCard, FiSettings, FiLogOut } from "react-icons/fi";
+import { FiGrid, FiUser, FiHeadphones, FiCreditCard, FiSettings, FiLogOut, FiGift } from "react-icons/fi";
 
 interface SideNavProps {
   isSidebarOpen: boolean;
@@ -15,6 +15,7 @@ const navItems = [
   ]},
   { section: "GENERAL", items: [
     { name: "Payment History", path: "/payments", icon: FiCreditCard },
+    { name: "Loyalty", path: "/loyalty", icon: FiGift },
     { name: "Account Setting", path: "/settings", icon: FiSettings },
     { name: "Logout", path: "#logout", icon: FiLogOut },
   ]}

@@ -5,6 +5,7 @@ import { contactApi }from "./apis/user/users/contact"
 import { petTagOrdersApi } from './apis/user/users/petTagOrders';
 import { petsApi } from './apis/user/users/pets';
 import { qrcodeApi } from './apis/user/qrcode';
+import { loyaltyApi } from './apis/user/loyalty';
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +14,8 @@ export const store = configureStore({
     [contactApi.reducerPath]: contactApi.reducer,
     [petTagOrdersApi.reducerPath]: petTagOrdersApi.reducer,
     [petsApi.reducerPath]: petsApi.reducer,
-    [qrcodeApi.reducerPath]: qrcodeApi.reducer
+    [qrcodeApi.reducerPath]: qrcodeApi.reducer,
+    [loyaltyApi.reducerPath]: loyaltyApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -23,4 +25,5 @@ export const store = configureStore({
       .concat(petTagOrdersApi.middleware)
       .concat(petsApi.middleware)
       .concat(qrcodeApi.middleware)
+      .concat(loyaltyApi.middleware)
 });

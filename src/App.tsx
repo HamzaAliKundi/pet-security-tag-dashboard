@@ -17,6 +17,7 @@ import PetsPage from "./pages/pets";
 import ContactPage from "./pages/contact";
 import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
+import LoyaltyPage from "./pages/loyalty";
 import Order from "./components/order/order";
 import ReplacementOrder from "./components/order/replacementOrder";
 import EditPet from "./components/pets/edit-pet/edit-pet";
@@ -59,6 +60,7 @@ function App() {
 
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/payments" element={<PaymentPage />} />
+            <Route path="/loyalty" element={<LoyaltyPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>

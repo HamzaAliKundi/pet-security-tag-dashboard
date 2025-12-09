@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useSignupMutation } from "../../apis/auth";
 
@@ -16,6 +16,8 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [signup] = useSignupMutation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref'); // Get referral code from URL
 
   const {
     register,
@@ -33,6 +35,7 @@ const Signup = () => {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        referralCode: referralCode || undefined, // Include referral code if present
       };
       const res = await signup(payload);
       if (res?.data?.status === 201) navigate("/verify-email-sent");
