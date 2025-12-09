@@ -9,6 +9,11 @@ interface UserFormData {
   lastName: string;
   email: string;
   phone?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
 }
 
 const Settings = () => {
@@ -64,6 +69,12 @@ const Settings = () => {
       } else {
         setValue('phone', '');
       }
+      // Set address fields
+      setValue('street', userData.user.street || '');
+      setValue('city', userData.user.city || '');
+      setValue('state', userData.user.state || '');
+      setValue('zipCode', userData.user.zipCode || '');
+      setValue('country', userData.user.country || '');
     }
   }, [userData, setValue]);
 
@@ -115,7 +126,12 @@ const Settings = () => {
         firstName: userData.user.firstName,
         lastName: userData.user.lastName,
         email: userData.user.email,
-        phone: phoneValue
+        phone: phoneValue,
+        street: userData.user.street || '',
+        city: userData.user.city || '',
+        state: userData.user.state || '',
+        zipCode: userData.user.zipCode || '',
+        country: userData.user.country || ''
       });
     }
     setIsEditing(false);
@@ -192,6 +208,22 @@ const Settings = () => {
       {/* Account Title */}
       <div className="font-afacad font-semibold text-[18px] sm:text-[20px] lg:text-[24px] text-[#222] mb-4 sm:mb-6 lg:mb-8 text-left">
         Account
+      </div>
+
+      {/* Alert Message */}
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="font-afacad text-sm text-blue-700">
+              <strong>Important:</strong> Please make sure to give correct information and fill all the fields so that for referral rewards we will use your given address.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Profile Section */}
@@ -375,6 +407,114 @@ const Settings = () => {
               </button>
             </div>
           )}
+        </form>
+      </div>
+
+      {/* Address Section */}
+      <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-8 mt-6">
+        <div className="mb-6">
+          <div className="font-afacad font-semibold text-[16px] text-[#222] mb-1">Address</div>
+          <div className="font-afacad text-[14px] text-[#636363] mb-4">
+            Provide your complete address for referral reward deliveries.
+          </div>
+          <div className="border-b border-[#E0E0E0]" />
+        </div>
+
+        {/* Address Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          <div>
+            <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="street">
+              Street Address
+            </label>
+            <input
+              id="street"
+              type="text"
+              className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                isEditing 
+                  ? 'bg-white focus:border-[#4CB2E2]' 
+                  : 'bg-[#FAFAFA] cursor-not-allowed'
+              }`}
+              readOnly={!isEditing}
+              placeholder="Enter street address"
+              {...register('street')}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="city">
+                City
+              </label>
+              <input
+                id="city"
+                type="text"
+                className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                readOnly={!isEditing}
+                placeholder="Enter city"
+                {...register('city')}
+              />
+            </div>
+
+            <div>
+              <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="state">
+                State/Province
+              </label>
+              <input
+                id="state"
+                type="text"
+                className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                readOnly={!isEditing}
+                placeholder="Enter state or province"
+                {...register('state')}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="zipCode">
+                ZIP/Postal Code
+              </label>
+              <input
+                id="zipCode"
+                type="text"
+                className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                readOnly={!isEditing}
+                placeholder="Enter ZIP or postal code"
+                {...register('zipCode')}
+              />
+            </div>
+
+            <div>
+              <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="country">
+                Country
+              </label>
+              <input
+                id="country"
+                type="text"
+                className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
+                  isEditing 
+                    ? 'bg-white focus:border-[#4CB2E2]' 
+                    : 'bg-[#FAFAFA] cursor-not-allowed'
+                }`}
+                readOnly={!isEditing}
+                placeholder="Enter country"
+                {...register('country')}
+              />
+            </div>
+          </div>
         </form>
       </div>
 

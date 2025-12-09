@@ -22,7 +22,17 @@ export const userApi = createApi({
       providesTags: ['User'],
     }),
     updateSingleUser: builder.mutation({
-      query: (userData: { firstName: string; lastName: string; email: string; phone?: string }) => ({
+      query: (userData: { 
+        firstName: string; 
+        lastName: string; 
+        email: string; 
+        phone?: string;
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+      }) => ({
         url: "/user/update-single-user",
         method: "PATCH",
         body: userData,
