@@ -19,7 +19,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }: NavbarProps) {
       localStorage.removeItem("token");
       setIsLogoutModalOpen(false);
       setIsLoggingOut(false);
-      navigate("/");
+      window.location.href = "/";
     }, 2000);
   };
 

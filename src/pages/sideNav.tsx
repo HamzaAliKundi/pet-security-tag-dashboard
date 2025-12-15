@@ -33,7 +33,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
       localStorage.removeItem("token");
       setIsLogoutModalOpen(false);
       setIsLoggingOut(false);
-      navigate("/");
+      window.location.href = "/";
     }, 2000);
   };
 
