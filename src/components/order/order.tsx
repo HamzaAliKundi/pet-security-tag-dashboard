@@ -3,6 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
+import { useNavigate } from 'react-router-dom';
 
 // Tag price is now retrieved from LocalizationContext
 
@@ -289,7 +290,7 @@ const PaymentForm = ({
               </div>
               <div>
                 <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
-                  State*
+                  State / County*
                 </label>
                 <input
                   type="text"
@@ -306,7 +307,7 @@ const PaymentForm = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
-                  Zip Code*
+                  Zip Code / Postal Code*
                 </label>
                 <input
                   type="text"
@@ -390,6 +391,7 @@ const PaymentForm = ({
 };
 
 const Order = () => {
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [petName, setPetName] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -471,22 +473,8 @@ const Order = () => {
   };
 
   const handleOrderSuccess = (orderData: any) => {
-    alert('Order completed successfully!');
     setShowModal(false);
-    // Reset form
-    setQuantity(1);
-    setPetName('');
-    setTagColor('blue');
-    setTagColors(['blue']);
-    setCountryCode('+44');
-    setFormData({
-      phone: '',
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: ''
-    });
+    navigate('/order-summary', { state: { orderData } });
   };
 
   return (

@@ -226,32 +226,35 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Profile Section */}
-      <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-8">
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-1">
-            <div className="font-afacad font-semibold text-[16px] text-[#222]">Profile</div>
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] shadow-sm hover:bg-[#d0eefd] transition"
-              >
-                <svg width="16" height="16" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Edit
-              </button>
-            )}
+      {/* Combined Form */}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Profile Section */}
+        <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-8">
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-1">
+              <div className="font-afacad font-semibold text-[16px] text-[#222]">Profile</div>
+              {!isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#E6F6FE] text-[#4CB2E2] font-afacad font-semibold text-[14px] shadow-sm hover:bg-[#d0eefd] transition"
+                >
+                  <svg width="16" height="16" fill="none" stroke="#4CB2E2" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
+              )}
+            </div>
+            <div className="font-afacad text-[14px] text-[#636363] mb-4">
+              We like to know who we're talking to; please enter your name so we know how to address you.
+            </div>
+            <div className="border-b border-[#E0E0E0]" />
           </div>
-          <div className="font-afacad text-[14px] text-[#636363] mb-4">
-            We like to know who we're talking to; please enter your name so we know how to address you.
-          </div>
-          <div className="border-b border-[#E0E0E0]" />
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          {/* Profile Form Fields */}
+          <div className="flex flex-col gap-6">
           <div>
             <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="firstName">
               First name*
@@ -303,12 +306,9 @@ const Settings = () => {
             <input
               id="email"
               type="email"
-              className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
-                isEditing 
-                  ? 'bg-white focus:border-[#4CB2E2]' 
-                  : 'bg-[#FAFAFA] cursor-not-allowed'
-              }`}
-              readOnly={!isEditing}
+              className="w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none bg-[#FAFAFA] cursor-not-allowed"
+              readOnly
+              disabled
               {...register('email', {
                 required: 'Email is required',
                 pattern: {
@@ -368,60 +368,21 @@ const Settings = () => {
               </span>
             )}
           </div>
-
-          {isEditing && (
-            <div className="pt-2 flex gap-3">
-              <button
-                type="submit"
-                disabled={isUpdating}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[16px] shadow-sm hover:bg-[#3da1d1] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isUpdating ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg width="18" height="18" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Save
-                  </>
-                )}
-              </button>
-              
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={isUpdating}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-[8px] bg-gray-200 text-gray-700 font-afacad font-semibold text-[16px] shadow-sm hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                Cancel
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
-
-      {/* Address Section */}
-      <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-8 mt-6">
-        <div className="mb-6">
-          <div className="font-afacad font-semibold text-[16px] text-[#222] mb-1">Address</div>
-          <div className="font-afacad text-[14px] text-[#636363] mb-4">
-            Provide your complete address for referral reward deliveries.
           </div>
-          <div className="border-b border-[#E0E0E0]" />
         </div>
 
-        {/* Address Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        {/* Address Section */}
+        <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-8 mt-6">
+          <div className="mb-6">
+            <div className="font-afacad font-semibold text-[16px] text-[#222] mb-1">Address</div>
+            <div className="font-afacad text-[14px] text-[#636363] mb-4">
+              Provide your complete address for referral reward deliveries.
+            </div>
+            <div className="border-b border-[#E0E0E0]" />
+          </div>
+
+          {/* Address Form Fields */}
+          <div className="flex flex-col gap-6">
           <div>
             <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="street">
               Street Address
@@ -501,22 +462,65 @@ const Settings = () => {
               <label className="block font-afacad text-[14px] text-[#636363] mb-2" htmlFor="country">
                 Country
               </label>
-              <input
+              <select
                 id="country"
-                type="text"
+                disabled={!isEditing}
                 className={`w-full rounded-[8px] border border-[#E0E0E0] px-4 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
                   isEditing 
                     ? 'bg-white focus:border-[#4CB2E2]' 
                     : 'bg-[#FAFAFA] cursor-not-allowed'
                 }`}
-                readOnly={!isEditing}
-                placeholder="Enter country"
                 {...register('country')}
-              />
+              >
+                <option value="" disabled>Select country</option>
+                <option value="United States">United States</option>
+                <option value="UK">UK</option>
+                <option value="Canada">Canada</option>
+              </select>
             </div>
           </div>
-        </form>
-      </div>
+          </div>
+        </div>
+
+        {/* Save/Cancel Buttons - At the bottom of the form */}
+        {isEditing && (
+          <div className="bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-6 py-6 mt-6 flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isUpdating}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-[8px] bg-gray-200 text-gray-700 font-afacad font-semibold text-[16px] shadow-sm hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-[8px] bg-[#4CB2E2] text-white font-afacad font-semibold text-[16px] shadow-sm hover:bg-[#3da1d1] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </form>
 
       {/* Danger zone */}
       <div className="bg-white rounded-[16px] shadow-lg border border-[#FFE2E2] px-6 py-6 mt-6">

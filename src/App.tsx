@@ -19,6 +19,7 @@ import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
 import LoyaltyPage from "./pages/loyalty";
 import Order from "./components/order/order";
+import OrderSummary from "./components/order/orderSummary";
 import ReplacementOrder from "./components/order/replacementOrder";
 import EditPet from "./components/pets/edit-pet/edit-pet";
 import ViewPet from "./components/pets/viewPet";
@@ -52,6 +53,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route path="/overview" element={<OverviewPage />} />
             <Route path="/order" element={<Order />} />
+            <Route path="/order-summary" element={<OrderSummary />} />
             <Route path="/replacement-order/:petId" element={<ReplacementOrder />} />
             
             <Route path="/pets" element={<PetsPage />} />
