@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { FiGrid, FiUser, FiHeadphones, FiCreditCard, FiSettings, FiLogOut, FiGift } from "react-icons/fi";
+import { FiGrid, FiUser, FiHeadphones, FiCreditCard, FiSettings, FiLogOut, FiGift, FiStar } from "react-icons/fi";
 
 interface SideNavProps {
   isSidebarOpen: boolean;
@@ -16,6 +16,7 @@ const navItems = [
   { section: "GENERAL", items: [
     { name: "Payment History", path: "/payments", icon: FiCreditCard },
     { name: "Loyalty", path: "/loyalty", icon: FiGift },
+    { name: "Leave a Review", path: "/reviews", icon: FiStar },
     { name: "Account Setting", path: "/settings", icon: FiSettings },
     { name: "Logout", path: "#logout", icon: FiLogOut },
   ]}
@@ -47,10 +48,10 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
         />
       )}
       <aside
-        className={`fixed z-40 top-0 left-0 h-[910px] w-[300px] bg-[#4CB2E2] flex flex-col items-center transition-transform duration-300 md:relative md:translate-x-0 md:z-0
+        className={`fixed z-40 top-0 left-0 h-screen w-[300px] bg-[#4CB2E2] flex flex-col items-center transition-transform duration-300 md:relative md:translate-x-0 md:z-0
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
-        style={{ minHeight: 910, minWidth: 300 }}
+        style={{ minWidth: 300 }}
       >
         {/* Close button for mobile */}
         <button
@@ -61,8 +62,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
         </button>
         {/* Logo and Links Container */}
         <div
-          className="flex flex-col items-center mt-14"
-          style={{ width: 212, height: 333 }}
+          className="flex flex-col items-center mt-14 flex-1 w-full max-w-[212px] pb-6 overflow-y-auto"
         >
           <img src="/logo.svg" alt="Digital Tails Logo" className="h-12 mb-2" />
           {/* Navigation */}

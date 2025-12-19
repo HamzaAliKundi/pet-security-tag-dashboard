@@ -18,6 +18,7 @@ import ContactPage from "./pages/contact";
 import PaymentPage from "./pages/payment";
 import SettingsPage from "./pages/settings";
 import LoyaltyPage from "./pages/loyalty";
+import ReviewsPage from "./pages/reviews";
 import Order from "./components/order/order";
 import OrderSummary from "./components/order/orderSummary";
 import ReplacementOrder from "./components/order/replacementOrder";
@@ -63,6 +64,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/payments" element={<PaymentPage />} />
             <Route path="/loyalty" element={<LoyaltyPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
