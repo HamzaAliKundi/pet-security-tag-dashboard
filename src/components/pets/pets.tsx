@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ReplacementTagModal from './ReplacementTagModal';
 import ViewPetModal from './ViewPetModal';
 import { useGetUserPetsQuery } from '../../apis/user/users';
+import { isPetComplete } from '../../utils/petValidation';
 
 // Mock pets for replacement tag modal (keeping original structure)
 const mockPets = [
@@ -34,11 +35,14 @@ const Pets = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPetForView, setSelectedPetForView] = useState<any>(null);
   
-  // Fetch pets from API
-  const { data: petsData, isLoading, error } = useGetUserPetsQuery({ page: 1, limit: 10 });
+  // Fetch pets from API - refetch on mount to ensure fresh data
+  const { data: petsData, isLoading, error, refetch } = useGetUserPetsQuery({ page: 1, limit: 10 }, { refetchOnMountOrArgChange: true });
   
   // Use real pets data or fallback to empty array
   const pets = petsData?.pets || [];
+
+  // Check if any pets need updating
+  const hasIncompletePets = pets.some(pet => !isPetComplete(pet));
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -89,6 +93,24 @@ const Pets = () => {
         <p className="font-afacad text-[13px] sm:text-[15px] text-[#636363]">Edit your pet's details that will show when their tag is scanned.</p>
       </div>
 
+      {/* Warning Banner if pets need updating */}
+      {hasIncompletePets && (
+        <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="font-afacad text-sm text-yellow-700">
+                <strong>Update required:</strong> Some of your pets' information is incomplete. Please update their details so finders can identify them if lost.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-8">
@@ -110,8 +132,17 @@ const Pets = () => {
             <div className="font-afacad text-[15px] text-[#636363]">No pets found. Complete an order to see your pets here.</div>
           </div>
         )}
-        {pets.map((pet) => (
-          <div key={pet._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-4 py-4 gap-4">
+        {pets.map((pet) => {
+          const isComplete = isPetComplete(pet);
+          return (
+            <div key={pet._id} className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-[16px] shadow-lg border border-[#E0E0E0] px-4 py-4 gap-4">
+            {/* Incomplete Indicator Dot */}
+            {!isComplete && (
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span className="font-afacad text-[10px] font-semibold">Needs update</span>
+              </div>
+            )}
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <img src={pet.image || "/overview/cat.svg"} alt={pet.petName} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
               <div>
@@ -136,8 +167,9 @@ const Pets = () => {
                 Get replacement tag
               </button>
             </div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* Add More Pets Card */}

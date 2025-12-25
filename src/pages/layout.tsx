@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import SideNav from "./sideNav";
 import Navbar from "../components/common/navbar";
+import SettingsIncompleteNotification from "../components/common/SettingsIncompleteNotification";
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +28,9 @@ const Layout = () => {
         <div className="flex-1 overflow-y-auto px-4 md:px-8 py-8">
           <Outlet />
         </div>
+        
+        {/* Settings Incomplete Notification - Top Right */}
+        <SettingsIncompleteNotification />
       </div>
     </div>
   );

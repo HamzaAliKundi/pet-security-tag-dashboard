@@ -1,11 +1,20 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Package, MapPin, Calendar } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { petsApi } from '../../apis/user/users/pets';
 
 const OrderSummary: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const orderData = (location.state as any)?.orderData;
+
+  const handleGoToDashboard = () => {
+    // Invalidate Pet tags to refetch pets when navigating to dashboard
+    dispatch(petsApi.util.invalidateTags(['Pet']));
+    navigate('/overview');
+  };
 
   useEffect(() => {
     window.scrollTo({
@@ -158,7 +167,7 @@ const OrderSummary: React.FC = () => {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={() => navigate('/overview')}
+            onClick={handleGoToDashboard}
             className="px-6 py-3 bg-[#4CB2E2] text-white rounded-lg font-semibold hover:bg-[#3da1d1] transition-colors"
           >
             Back to Dashboard

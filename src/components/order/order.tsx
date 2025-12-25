@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery } from '../../apis/user/users';
+import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery, useGetSingleUserQuery } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
 import { useNavigate } from 'react-router-dom';
+import { isUserSettingsComplete } from '../../utils/settingsValidation';
+import toast from 'react-hot-toast';
 
 // Tag price is now retrieved from LocalizationContext
 
@@ -411,6 +413,10 @@ const Order = () => {
   const { data: petCountData, isLoading: petCountLoading } = useGetUserPetCountQuery();
   const { shippingPrice, tagPrice, isLocalizing } = useLocalization();
   
+  // Fetch user data to check if settings are complete
+  // @ts-ignore
+  const { data: userData, isLoading: isLoadingUser } = useGetSingleUserQuery();
+  
   // Calculate totals
   const tagSubtotal = tagPrice.amount * quantity;
   const totalAmount = tagSubtotal + shippingPrice.amount;
@@ -419,22 +425,34 @@ const Order = () => {
   const maxAllowed = petCountData?.data?.maxAllowed || 5;
   const canOrderMore = petCountData?.data?.canOrderMore || false;
   const remainingSlots = petCountData?.data?.remainingSlots || 0;
+  
+  // Check if user settings are complete
+  const isSettingsComplete = userData?.user ? isUserSettingsComplete(userData.user) : false;
 
   const handleCompleteOrder = () => {
     if (!petName.trim()) {
-      alert('Please enter a pet name');
+      toast.error('Please enter a pet name');
+      return;
+    }
+
+    // Check if user settings are complete
+    if (userData?.user && !isUserSettingsComplete(userData.user)) {
+      toast.error('Please complete your profile settings before placing an order. Redirecting to settings...');
+      setTimeout(() => {
+        navigate('/settings');
+      }, 2000);
       return;
     }
 
     // Check if user can order more pets
     if (!canOrderMore) {
-      alert(`You have reached the maximum limit of ${maxAllowed} pet tags per account.`);
+      toast.error(`You have reached the maximum limit of ${maxAllowed} pet tags per account.`);
       return;
     }
 
     // Check if the requested quantity exceeds remaining slots
     if (quantity > remainingSlots) {
-      alert(`You can only order ${remainingSlots} more pet tag(s). You currently have ${currentPetCount} pets and the maximum is ${maxAllowed}.`);
+      toast.error(`You can only order ${remainingSlots} more pet tag(s). You currently have ${currentPetCount} pets and the maximum is ${maxAllowed}.`);
       return;
     }
 
@@ -484,20 +502,35 @@ const Order = () => {
         <div className="font-afacad font-semibold text-[24px] text-[#222] mb-2">Order more tags</div>
         <div className="font-afacad text-[15px] text-[#636363]">You can protect up to 5 pets with digital tails!</div>
         
-        {/* Pet Limit Status */}
+        {/* Pet Limit Status & Settings Warning */}
         {!petCountLoading && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
-            <div className="font-afacad text-[14px] text-blue-800">
-              <span className="font-semibold">Pet Tags Status:</span> {currentPetCount}/{maxAllowed} used
-              {remainingSlots > 0 && (
-                <span className="text-blue-600"> • {remainingSlots} slots remaining</span>
-              )}
-            </div>
-            {!canOrderMore && (
-              <div className="font-afacad text-[13px] text-red-600 mt-1">
-                ⚠️ You have reached the maximum limit of {maxAllowed} pet tags per account.
+          <div className="mt-4 space-y-3 max-w-md mx-auto">
+            {!isSettingsComplete && !isLoadingUser && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="font-afacad text-[14px] text-red-800">
+                  <span className="font-semibold">⚠️ Profile Incomplete:</span> Please complete your profile settings before placing an order.
+                </div>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="mt-2 text-sm text-red-600 underline font-semibold hover:text-red-800"
+                >
+                  Go to Settings
+                </button>
               </div>
             )}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="font-afacad text-[14px] text-blue-800">
+                <span className="font-semibold">Pet Tags Status:</span> {currentPetCount}/{maxAllowed} used
+                {remainingSlots > 0 && (
+                  <span className="text-blue-600"> • {remainingSlots} slots remaining</span>
+                )}
+              </div>
+              {!canOrderMore && (
+                <div className="font-afacad text-[13px] text-red-600 mt-1">
+                  ⚠️ You have reached the maximum limit of {maxAllowed} pet tags per account.
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -574,14 +607,14 @@ const Order = () => {
         <button
           type="button"
           onClick={handleCompleteOrder}
-          disabled={!canOrderMore || petCountLoading}
+          disabled={!canOrderMore || petCountLoading || !isSettingsComplete || isLoadingUser}
           className={`w-full py-3 rounded-[8px] font-afacad font-semibold text-[17px] shadow-md transition ${
-            !canOrderMore || petCountLoading
+            !canOrderMore || petCountLoading || !isSettingsComplete || isLoadingUser
               ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
               : 'bg-[#4CB2E2] text-white hover:bg-[#38a1d6]'
           }`}
         >
-          {petCountLoading ? 'Loading...' : !canOrderMore ? 'Limit Reached' : 'Complete Order'}
+          {petCountLoading || isLoadingUser ? 'Loading...' : !isSettingsComplete ? 'Complete Profile First' : !canOrderMore ? 'Limit Reached' : 'Complete Order'}
         </button>
       </div>
 

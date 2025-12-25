@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGetPetQuery, useUpdatePetMutation } from '../../../apis/user/users';
+import { useGetPetQuery, useUpdatePetMutation, useGetSingleUserQuery } from '../../../apis/user/users';
 import toast from 'react-hot-toast';
+import { isUserSettingsComplete } from '../../../utils/settingsValidation';
 
 const EditPet = () => {
   const { petId } = useParams<{ petId: string }>();
@@ -24,6 +25,10 @@ const EditPet = () => {
     skip: !petId
   });
   const [updatePet, { isLoading: isUpdating }] = useUpdatePetMutation();
+  
+  // Fetch user data to check if settings are complete
+  // @ts-ignore
+  const { data: userData, isLoading: isLoadingUser } = useGetSingleUserQuery();
   
   // Update form when pet data is loaded
   useEffect(() => {
@@ -98,6 +103,15 @@ const EditPet = () => {
     
     if (!petId) {
       console.error('No petId found'); // Debug log
+      return;
+    }
+    
+    // Check if user settings are complete
+    if (userData?.user && !isUserSettingsComplete(userData.user)) {
+      toast.error('Please complete your profile settings before updating pet information. Redirecting to settings...');
+      setTimeout(() => {
+        navigate('/settings');
+      }, 2000);
       return;
     }
     
@@ -205,6 +219,9 @@ const EditPet = () => {
     );
   }
 
+  // Check if user settings are complete
+  const isSettingsComplete = userData?.user ? isUserSettingsComplete(userData.user) : false;
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#fafbfc] to-[#f8fafd] px-2 py-8 flex flex-col items-center">
       <div className="w-full max-w-[900px] mx-auto">
@@ -213,6 +230,21 @@ const EditPet = () => {
           <div className="font-afacad font-semibold text-[18px] text-[#222] mb-1">Manage your pets</div>
           <div className="font-afacad text-[15px] text-[#636363]">Edit your pet's details that will show when their tag is scanned.</div>
         </div>
+
+        {/* Settings Warning */}
+        {!isSettingsComplete && !isLoadingUser && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="font-afacad text-[14px] text-red-800">
+              <span className="font-semibold">⚠️ Profile Incomplete:</span> Please complete your profile settings before updating pet information.
+            </div>
+            <button
+              onClick={() => navigate('/settings')}
+              className="mt-2 text-sm text-red-600 underline font-semibold hover:text-red-800"
+            >
+              Go to Settings
+            </button>
+          </div>
+        )}
 
         {/* Card/Section */}
         <div className="bg-white rounded-[16px] py-8">
