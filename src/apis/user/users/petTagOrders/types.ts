@@ -1,7 +1,8 @@
 export interface PetTagOrderRequest {
   quantity: number;
   petName: string;
-  totalCostEuro: number;
+  totalCostEuro: number; // Keep same field name for backward compatibility (but now contains amount in user's currency)
+  currency?: string; // Currency code (gbp, usd, cad) - defaults to gbp if not provided
   tagColor?: string; // Keep for backward compatibility
   tagColors?: string[]; // Array of colors for each tag (when quantity > 1)
   phone: string;

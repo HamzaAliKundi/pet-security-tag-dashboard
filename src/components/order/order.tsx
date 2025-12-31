@@ -90,25 +90,6 @@ const PaymentForm = ({
       // Combine country code with phone number
       const fullPhoneNumber = `${countryCode}${phone}`;
 
-      // Create order using RTK Query
-      // Backend expects EUR, so convert from user's currency to EUR
-      // Conversion rates (approximate)
-      const GBP_TO_EUR = 1.17;
-      const USD_TO_EUR = 0.92;
-      const CAD_TO_EUR = 0.68;
-      
-      let totalCostEuro: number;
-      if (totalCost.currency === 'GBP') {
-        totalCostEuro = totalCost.amount * GBP_TO_EUR;
-      } else if (totalCost.currency === 'USD') {
-        totalCostEuro = totalCost.amount * USD_TO_EUR;
-      } else if (totalCost.currency === 'CAD') {
-        totalCostEuro = totalCost.amount * CAD_TO_EUR;
-      } else {
-        // Default to GBP conversion
-        totalCostEuro = totalCost.amount * GBP_TO_EUR;
-      }
-
       // Ensure tagColors array matches quantity exactly
       let finalTagColors: string[];
       if (quantity === 1) {
@@ -124,7 +105,8 @@ const PaymentForm = ({
       const orderResult = await createPetTagOrder({
         quantity,
         petName,
-        totalCostEuro: totalCostEuro,
+        totalCostEuro: totalCost.amount, // Send amount in user's currency (no conversion needed)
+        currency: totalCost.currency.toLowerCase(), // Send currency from LocalizationContext
         tagColor: quantity === 1 ? tagColor : undefined, // Keep for backward compatibility
         tagColors: finalTagColors, // Array of colors for each tag
         phone: fullPhoneNumber,
