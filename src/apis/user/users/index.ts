@@ -64,6 +64,7 @@ export {
   useGetPetTagOrderQuery,
   useUpdatePetTagOrderMutation,
   useConfirmPaymentMutation,
+  useValidateDiscountMutation,
 } from './petTagOrders';
 
 // Export pets API

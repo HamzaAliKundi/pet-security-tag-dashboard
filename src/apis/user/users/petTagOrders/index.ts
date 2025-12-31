@@ -93,6 +93,15 @@ export const petTagOrdersApi = createApi({
         'PetTagOrder'
       ],
     }),
+
+    // Validate discount code
+    validateDiscount: builder.mutation<{ valid: boolean; message?: string }, string>({
+      query: (code) => ({
+        url: "/user/discounts/validate",
+        method: "POST",
+        body: { code },
+      }),
+    }),
   }),
 });
 
@@ -103,4 +112,5 @@ export const {
   useGetPetTagOrderQuery,
   useUpdatePetTagOrderMutation,
   useConfirmPaymentMutation,
+  useValidateDiscountMutation,
 } = petTagOrdersApi;

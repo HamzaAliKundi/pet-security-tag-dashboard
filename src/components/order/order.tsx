@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery, useGetSingleUserQuery } from '../../apis/user/users';
+import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery, useGetSingleUserQuery, useValidateDiscountMutation } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
 import { useNavigate } from 'react-router-dom';
 import { isUserSettingsComplete } from '../../utils/settingsValidation';
@@ -324,14 +324,17 @@ const PaymentForm = ({
                 <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
                   Country*
                 </label>
-                <input
-                  type="text"
-                  placeholder="Enter country"
+                <select
                   value={country}
                   onChange={(e) => onFormChange('country', e.target.value)}
                   className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
                   required
-                />
+                >
+                  <option value="" disabled>Select Country</option>
+                  <option value="United States">United States</option>
+                  <option value="UK">UK</option>
+                  <option value="Canada">Canada</option>
+                </select>
               </div>
             </div>
 
@@ -417,9 +420,18 @@ const Order = () => {
   // @ts-ignore
   const { data: userData, isLoading: isLoadingUser } = useGetSingleUserQuery();
   
+  // Discount state
+  const [discountCode, setDiscountCode] = useState('');
+  const [isDiscountValid, setIsDiscountValid] = useState(false);
+  const [discountError, setDiscountError] = useState('');
+  const [isDiscountApplied, setIsDiscountApplied] = useState(false);
+  const [validateDiscount, { isLoading: isValidatingDiscount }] = useValidateDiscountMutation();
+  
   // Calculate totals
   const tagSubtotal = tagPrice.amount * quantity;
-  const totalAmount = tagSubtotal + shippingPrice.amount;
+  // Shipping is free if discount is applied, otherwise use regular shipping price
+  const shippingCost = (isDiscountApplied && isDiscountValid) ? 0 : shippingPrice.amount;
+  const totalAmount = tagSubtotal + shippingCost;
   
   const currentPetCount = petCountData?.data?.currentCount || 0;
   const maxAllowed = petCountData?.data?.maxAllowed || 5;
@@ -488,6 +500,34 @@ const Order = () => {
       newColors[index] = color;
       return newColors;
     });
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError('Please enter a discount code');
+      return;
+    }
+
+    try {
+      const result = await validateDiscount(discountCode.trim()).unwrap();
+      
+      if (result.valid) {
+        setIsDiscountValid(true);
+        setIsDiscountApplied(true);
+        setDiscountError('');
+        toast.success('Discount code applied successfully!');
+      } else {
+        setIsDiscountValid(false);
+        setIsDiscountApplied(false);
+        setDiscountError(result.message || 'Invalid discount code');
+      }
+    } catch (error: any) {
+      setIsDiscountValid(false);
+      setIsDiscountApplied(false);
+      const errorMessage = error?.data?.message || 'Failed to validate discount code';
+      setDiscountError(errorMessage);
+      toast.error(errorMessage);
+    }
   };
 
   const handleOrderSuccess = (orderData: any) => {
@@ -583,6 +623,48 @@ const Order = () => {
           onChange={e => setPetName(e.target.value)}
         />
 
+        {/* Discount Code Input */}
+        <div className="mb-4">
+          <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
+            Discount Code (Optional)
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={discountCode}
+              onChange={(e) => {
+                setDiscountCode(e.target.value);
+                setDiscountError('');
+                setIsDiscountValid(false);
+                setIsDiscountApplied(false);
+              }}
+              placeholder="Enter discount code"
+              className={`flex-1 rounded-[8px] border px-4 py-3 font-afacad text-[15px] shadow-sm focus:outline-none transition ${
+                discountError ? 'border-red-500' : isDiscountValid ? 'border-green-500' : 'border-[#E0E0E0]'
+              } bg-[#FAFAFA] text-[#222] focus:border-[#4CB2E2]`}
+              disabled={isValidatingDiscount}
+            />
+            <button
+              type="button"
+              onClick={handleApplyDiscount}
+              disabled={!discountCode.trim() || isValidatingDiscount || isDiscountApplied}
+              className={`px-6 py-3 rounded-[8px] font-afacad font-semibold text-[15px] transition ${
+                !discountCode.trim() || isValidatingDiscount || isDiscountApplied
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#4CB2E2] text-white hover:bg-[#38a1d6]'
+              }`}
+            >
+              {isValidatingDiscount ? 'Checking...' : isDiscountApplied ? 'Applied' : 'Apply'}
+            </button>
+          </div>
+          {discountError && (
+            <span className="text-red-500 text-sm mt-1 block">{discountError}</span>
+          )}
+          {isDiscountValid && isDiscountApplied && (
+            <span className="text-green-600 text-sm mt-1 block">✓ Discount code applied successfully!</span>
+          )}
+        </div>
+
         {/* Order Summary */}
         <div className="divide-y divide-[#E0E0E0] mb-6">
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#222]">
@@ -592,7 +674,7 @@ const Order = () => {
           <div className="flex justify-between items-center py-3 font-afacad text-[15px] text-[#636363]">
             <span>Shipping & Handling</span>
             <span>
-              {isLocalizing ? '...' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
+              {isLocalizing ? '...' : (isDiscountApplied && isDiscountValid) ? 'Free' : `${shippingPrice.symbol}${shippingPrice.amount.toFixed(2)}`}
             </span>
           </div>
           <div className="flex justify-between items-center py-3 font-afacad font-semibold text-[16px] text-[#222]">
