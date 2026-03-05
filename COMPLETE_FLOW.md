@@ -156,12 +156,12 @@ index.html → main.tsx → App.tsx
 
 - **Subscription Prices:**
   - **US:**
-    - Monthly: $3.69
-    - Yearly: $37.99
+    - Monthly: $3.99
+    - Yearly: $39.99
     - Lifetime: $169.99
   - **CA:**
-    - Monthly: $5.11 CAD
-    - Yearly: $53.99 CAD
+    - Monthly: $5.99 CAD
+    - Yearly: $59.99 CAD
     - Lifetime: $239.99 CAD
   - **Default (GBP):**
     - Monthly: £2.75
