@@ -197,7 +197,7 @@ const SubscriptionCard: React.FC = () => {
         </div>
       </div>
 
-      {isExpiringSoon && (
+      {/* {isExpiringSoon && (
         <div className="mt-3 p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-start sm:items-center">
             <span className="text-orange-600 mr-2 flex-shrink-0 text-base sm:text-lg">⚠️</span>
@@ -206,7 +206,7 @@ const SubscriptionCard: React.FC = () => {
             </span>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Modals */}
       {paymentData && (
