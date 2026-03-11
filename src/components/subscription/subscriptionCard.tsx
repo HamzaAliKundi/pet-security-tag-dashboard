@@ -167,9 +167,9 @@ const SubscriptionCard: React.FC = () => {
         </div>
 
         <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:flex-shrink-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+          {/* <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0"> */}
             {/* <Check className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" /> */}
-          </div>
+          {/* </div> */}
           
           {type === 'lifetime' ? (
             <div className="text-center sm:text-center w-full sm:w-auto">
