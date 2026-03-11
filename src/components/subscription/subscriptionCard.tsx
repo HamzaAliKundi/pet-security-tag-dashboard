@@ -157,7 +157,7 @@ const SubscriptionCard: React.FC = () => {
           {autoRenew && type !== 'lifetime' && daysRemaining > 0 && (
             <div className="mt-2 sm:mt-2 p-2 bg-green-50 border border-green-200 rounded-lg w-full sm:max-w-[calc(100%-180px)] md:max-w-[calc(100%-200px)]">
               <div className="flex items-start sm:items-center">
-                <Check className="w-4 h-4 text-green-600 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
+                {/* <Check className="w-4 h-4 text-green-600 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" /> */}
                 <span className="font-afacad text-[11px] sm:text-[12px] text-green-700 break-words">
                   Auto-renewal enabled • Your subscription will automatically renew on {formatDate(endDate)}
                 </span>
