@@ -362,7 +362,14 @@ const SubscriptionForm: React.FC<{
                     className="mr-3 text-blue-600"
                   />
                   <div>
-                    <p className="font-medium">{details.label}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium">{details.label}</p>
+                      {type === 'yearly' && (
+                        <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                          Most Popular
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600">{details.description}</p>
                   </div>
                 </div>
