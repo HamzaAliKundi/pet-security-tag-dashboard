@@ -57,8 +57,93 @@ const SubscriptionCard: React.FC = () => {
 
   const primarySubscription = subscriptionsData?.primarySubscription;
   const hasActiveSubscription = subscriptionsData?.hasActiveSubscription || false;
+  const primaryStatus = primarySubscription?.status as string | undefined;
+  const primaryEndedDueToPaymentFailure = !!primarySubscription?.endedDueToPaymentFailure;
+  const primaryMarkedInactive =
+    primaryStatus === 'expired' ||
+    primaryStatus === 'cancelled' ||
+    primaryEndedDueToPaymentFailure;
+  const paymentFailureLapsed = subscriptionsData?.paymentFailureLapsed as
+    | { _id: string; type: string; endDate?: string; stripeSubscriptionId?: string; endedDueToPaymentFailure?: boolean; status?: string }
+    | null
+    | undefined;
 
-  if (!hasActiveSubscription || !primarySubscription) {
+  const handlePayAfterPaymentFailure = () => {
+    if (!paymentFailureLapsed?._id) return;
+    const planType = paymentFailureLapsed.type as 'monthly' | 'yearly' | 'lifetime';
+    if (planType === 'lifetime') return;
+    const priceInfo = subscriptionPrices[planType];
+    setPaymentData({
+      subscriptionId: paymentFailureLapsed._id,
+      subscriptionType: planType,
+      amount: priceInfo.amount,
+      currency: priceInfo.currency,
+      action: 'renewal',
+    });
+    setShowPaymentModal(true);
+  };
+
+  if (!hasActiveSubscription || !primarySubscription || primaryMarkedInactive) {
+    if (paymentFailureLapsed) {
+      const planType = paymentFailureLapsed.type as 'monthly' | 'yearly' | 'lifetime';
+      const canPayInApp = planType === 'monthly' || planType === 'yearly';
+
+      return (
+        <>
+          <div className="w-full max-w-[750px] min-h-[120px] bg-white rounded-[11.72px] shadow-lg px-4 sm:px-6 py-4 sm:py-[18px] flex flex-col justify-center border border-amber-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col flex-1">
+                <h3 className="font-afacad font-semibold text-[16px] sm:text-[18px] md:text-[20px] text-[#b45309] mb-2">
+                  {paymentFailureLapsed?.endedDueToPaymentFailure
+                    ? 'Subscription inactive — payment failed'
+                    : 'Subscription inactive'}
+                </h3>
+                <p className="font-afacad text-[11px] sm:text-[12px] md:text-[14px] text-[#636363] mb-2 sm:mb-3">
+                  {paymentFailureLapsed?.endedDueToPaymentFailure
+                    ? "We couldn&apos;t renew your plan after multiple attempts. Your pet&apos;s public profile is paused until payment succeeds. Pay here with your card to reactivate — same secure checkout as when you first subscribed."
+                    : "Your subscription is currently inactive. Pay here with your card to reactivate your pet protection."}
+                </p>
+              </div>
+              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 flex-shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl sm:text-2xl">⚠️</span>
+                </div>
+                {canPayInApp ? (
+                  <button
+                    type="button"
+                    onClick={handlePayAfterPaymentFailure}
+                    className="bg-[#4CB2E2] text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-[#38a1d6] transition-colors whitespace-nowrap"
+                  >
+                    Pay &amp; reactivate
+                  </button>
+                ) : (
+                  <p className="font-afacad text-[11px] text-[#636363] max-w-[200px] sm:text-right">
+                    For help restoring a lifetime plan, please contact support.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {paymentData && (
+            <PaymentModal
+              isOpen={showPaymentModal}
+              onClose={() => {
+                setShowPaymentModal(false);
+                setPaymentData(null);
+              }}
+              subscriptionId={paymentData.subscriptionId}
+              subscriptionType={paymentData.subscriptionType}
+              amount={paymentData.amount}
+              currency={paymentData.currency}
+              action={paymentData.action}
+              newType={paymentData.newType}
+            />
+          )}
+        </>
+      );
+    }
+
     return (
       <div className="w-full max-w-[750px] min-h-[120px] bg-white rounded-[11.72px] shadow-lg px-4 sm:px-6 py-4 sm:py-[18px] flex flex-col justify-center">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -67,7 +152,7 @@ const SubscriptionCard: React.FC = () => {
               No Active Subscription
             </h3>
             <p className="font-afacad text-[11px] sm:text-[12px] md:text-[14px] text-[#636363] mb-2 sm:mb-4">
-              Activate a QR code to get started with your pet's security tag.
+              Activate a QR code to get started with your pet&apos;s security tag.
             </p>
           </div>
           <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 flex-shrink-0">
@@ -86,7 +171,7 @@ const SubscriptionCard: React.FC = () => {
     );
   }
 
-  const { type, daysRemaining, isExpiringSoon, endDate, amountPaid, currency, autoRenew } = primarySubscription;
+  const { type, amountPaid, currency, autoRenew } = primarySubscription;
   
   const getSubscriptionTypeDisplay = (type: string) => {
     switch (type) {
@@ -102,14 +187,16 @@ const SubscriptionCard: React.FC = () => {
   };
 
   const getStatusColor = () => {
-    if (isExpiringSoon) return 'text-orange-600';
-    if (daysRemaining <= 0) return 'text-red-600';
+    if (primaryStatus === 'cancelled' || primaryStatus === 'expired' || primaryEndedDueToPaymentFailure) {
+      return 'text-red-600';
+    }
     return 'text-green-600';
   };
 
   const getStatusText = () => {
-    if (daysRemaining <= 0) return 'Expired';
-    if (isExpiringSoon) return 'Expiring Soon';
+    if (primaryEndedDueToPaymentFailure) return 'Payment Failed';
+    if (primaryStatus === 'cancelled') return 'Cancelled';
+    if (primaryStatus === 'expired') return 'Expired';
     return 'Active';
   };
 
@@ -137,13 +224,12 @@ const SubscriptionCard: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 sm:space-x-4">
             <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <span className="font-afacad text-[11px] sm:text-[12px] md:text-[14px] text-[#636363]">
-                {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Subscription expired'}
+                {primaryEndedDueToPaymentFailure
+                  ? 'Renewal failed - update payment method to reactivate'
+                  : primaryStatus === 'active'
+                    ? 'Subscription active'
+                    : 'Subscription inactive'}
               </span>
-              {daysRemaining > 0 && (
-                <span className="font-afacad text-[11px] sm:text-[12px] text-[#636363] whitespace-nowrap">
-                  (until {formatDate(endDate)})
-                </span>
-              )}
             </div>
             
             <div className="flex items-center">
@@ -154,12 +240,12 @@ const SubscriptionCard: React.FC = () => {
           </div>
 
           {/* Auto-Renewal Status */}
-          {autoRenew && type !== 'lifetime' && daysRemaining > 0 && (
+          {autoRenew && type !== 'lifetime' && primaryStatus === 'active' && !primaryEndedDueToPaymentFailure && (
             <div className="mt-2 sm:mt-2 p-2 bg-green-50 border border-green-200 rounded-lg w-full sm:max-w-[calc(100%-180px)] md:max-w-[calc(100%-200px)]">
               <div className="flex items-start sm:items-center">
                 <Check className="w-4 h-4 text-green-600 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
                 <span className="font-afacad text-[11px] sm:text-[12px] text-green-700 break-words">
-                  Auto-renewal enabled • Your subscription will automatically renew on {formatDate(endDate)}
+                  Auto-renewal enabled
                 </span>
               </div>
             </div>
