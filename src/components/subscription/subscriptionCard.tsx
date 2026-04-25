@@ -100,7 +100,7 @@ const SubscriptionCard: React.FC = () => {
                 </h3>
                 <p className="font-afacad text-[11px] sm:text-[12px] md:text-[14px] text-[#636363] mb-2 sm:mb-3">
                   {paymentFailureLapsed?.endedDueToPaymentFailure
-                    ? "We couldn&apos;t renew your plan after multiple attempts. Your pet&apos;s public profile is paused until payment succeeds. Pay here with your card to reactivate — same secure checkout as when you first subscribed."
+                    ? "We couldn&apos;t renew your plan after a second payment attempt. Your pet&apos;s profile and tag have now been temporarily suspended until payment is completed. To reactivate, simply update your details and make a payment, your pet&apos;s tag will be active again right away."
                     : "Your subscription is currently inactive. Pay here with your card to reactivate your pet protection."}
                 </p>
               </div>
