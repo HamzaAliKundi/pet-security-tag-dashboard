@@ -27,7 +27,45 @@ import ViewPet from "./components/pets/viewPet";
 import QRVerificationPage from "./components/qrcode/qrVerificationPage";
 import { LocalizationProvider } from "./context/LocalizationContext";
 
+const clearExpiredTokenIfNeeded = (): boolean => {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  try {
+    const [, payloadBase64] = token.split(".");
+    if (!payloadBase64) {
+      localStorage.removeItem("token");
+      return true;
+    }
+
+    const payload = JSON.parse(atob(payloadBase64));
+    const exp = payload?.exp;
+    if (typeof exp !== "number") {
+      localStorage.removeItem("token");
+      return true;
+    }
+
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    if (exp <= nowInSeconds) {
+      localStorage.removeItem("token");
+      return true;
+    }
+  } catch {
+    localStorage.removeItem("token");
+    return true;
+  }
+
+  return false;
+};
+
 function App() {
+  // Minimal app-load guard: clear stale JWT and force logout refresh.
+  const tokenWasCleared = clearExpiredTokenIfNeeded();
+  if (tokenWasCleared && window.location.pathname !== "/") {
+    window.location.replace("/");
+    return null;
+  }
+
   return (
     <LocalizationProvider>
       <BrowserRouter>
