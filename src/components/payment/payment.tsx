@@ -21,18 +21,42 @@ const Payment = () => {
   const paymentData = useMemo(() => {
     const orders = ordersData?.orders || [];
     const subscriptions = subscriptionsData?.subscriptions || [];
+    const subscriptionPaymentsFromCollection = subscriptionsData?.paymentHistory || [];
     
-    // Transform subscriptions to match payment format
-    const subscriptionPayments = subscriptions.map((sub: any) => ({
+    // Keep old behavior: transform subscriptions from subscriptions collection
+    const subscriptionPaymentsFromSubscriptions = subscriptions.map((sub: any) => ({
       _id: sub._id,
       paymentIntentId: sub.paymentIntentId || `SUB-${sub._id.slice(-8)}`,
       createdAt: sub.createdAt,
-      totalCostEuro: sub.amountPaid || 0, // Ensure we have a number, default to 0 if undefined/null
+      totalCostEuro: sub.amountPaid || 0,
       status: sub.status === 'active' ? 'paid' : sub.status,
       type: 'subscription',
       subscriptionType: sub.type,
       endDate: sub.endDate,
-      currency: sub.currency || 'gbp' // Store the currency for subscriptions
+      currency: sub.currency || 'gbp',
+      source: 'subscription',
+      dedupeKey: `subscription:${sub._id}`,
+    }));
+
+    // Transform subscription payment history (from payments collection) to match table format
+    const subscriptionPayments = subscriptionPaymentsFromCollection.map((payment: any) => ({
+      _id: payment._id,
+      paymentIntentId: payment.paymentIntentId || payment.stripeInvoiceId || `PAY-${payment._id.slice(-8)}`,
+      createdAt: payment.createdAt,
+      totalCostEuro: payment.amount || 0,
+      status: payment.status === 'succeeded' ? 'paid' : payment.status,
+      type: 'subscription',
+      subscriptionType: payment.subscriptionType,
+      currency: payment.currency || 'gbp',
+      attemptCount: payment.attemptCount,
+      failureReason: payment.failureReason,
+      stripeInvoiceId: payment.stripeInvoiceId,
+      source: payment.source || 'stripe_webhook',
+      dedupeKey: payment.stripeInvoiceId
+        ? `invoice:${payment.stripeInvoiceId}`
+        : payment.paymentIntentId
+          ? `pi:${payment.paymentIntentId}`
+          : `payment:${payment._id}`,
     }));
     
     // Transform orders to include type
@@ -42,7 +66,17 @@ const Payment = () => {
     }));
     
     // Combine and sort by date (newest first)
-    const allPayments = [...orderPayments, ...subscriptionPayments];
+    // Merge old + new subscription sources and dedupe
+    const seen = new Set<string>();
+    const mergedSubscriptionPayments = [...subscriptionPayments, ...subscriptionPaymentsFromSubscriptions]
+      .filter((entry: any) => {
+        const key = entry.dedupeKey || entry._id;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+    const allPayments = [...orderPayments, ...mergedSubscriptionPayments];
     return allPayments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [ordersData, subscriptionsData]);
   
@@ -203,13 +237,13 @@ const Payment = () => {
                       {payment.type === 'subscription' ? (
                         <div>
                           <div className="font-medium text-[#222]">
-                            {payment.subscriptionType?.charAt(0).toUpperCase() + payment.subscriptionType?.slice(1)} Plan
+                            {payment.subscriptionType
+                              ? `${payment.subscriptionType.charAt(0).toUpperCase()}${payment.subscriptionType.slice(1)} Plan`
+                              : 'Subscription'}
                           </div>
-                          {payment.endDate && (
-                            <div className="text-[11px]">
-                              Until: {formatDate(payment.endDate)}
-                            </div>
-                          )}
+                          {payment.status === 'failed' && payment.attemptCount ? (
+                            <div className="text-[11px]">Attempt: {payment.attemptCount}</div>
+                          ) : null}
                         </div>
                       ) : (
                         <div>
