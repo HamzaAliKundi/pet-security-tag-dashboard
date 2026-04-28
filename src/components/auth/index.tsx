@@ -51,7 +51,7 @@ const Login = () => {
           </h1>
           <p className="font-helvetica-neue font-normal text-base leading-[140%] tracking-[-0.02em] text-[#05131D] capitalize">
             Welcome to Digital Tails 🐾<br />
-            Please login or create an account to manage your pet's profile. 🐶🐱
+            Please login to manage your pet's profile. 🐶🐱
           </p>
         </div>
 
@@ -132,14 +132,9 @@ const Login = () => {
           </form>
 
           <div className="text-center space-y-4 !mt-10">
-            <p className="font-helvetica-neue font-[500] text-base leading-[100%] tracking-[0%] text-center capitalize">
-              Don't have an account?
+            <p className="font-helvetica-neue font-[500] text-base leading-[140%] tracking-[0%] text-center text-[#05131D]">
+              If you got your pet tag from a pet event you met us at or pet shop, you still need to order online to activate it. Once you've ordered, you'll get login details via email, just log in and then scan the tag to activate it.
             </p>
-            <div className="flex justify-center">
-              <Link to="/signup" className="w-[198px] h-[56px] font-medium border border-[#4CB2E2] bg-[#4CB2E2] text-[#05131D] rounded-lg px-6 py-2.5 transition-colors flex items-center justify-center">
-                Register
-              </Link>
-            </div>
           </div>
         </div>
       </div>

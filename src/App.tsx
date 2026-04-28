@@ -3,7 +3,7 @@ import PublicRoutes from "./pages/publicRoutes";
 import ProtectedRoutes from "./pages/protextedRoutes";
 import Layout from "./pages/layout";
 import { Toaster } from "react-hot-toast";
-import Signup from "./components/auth/sign-up";
+// import Signup from "./components/auth/sign-up";
 import VerificationSuccess from "./components/auth/verification-success";
 import ResetPassword from "./components/auth/reset-password";
 import ForgotPassword from "./components/auth/forgot-password";
@@ -73,7 +73,7 @@ function App() {
         <Routes>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/* <Route path="/signup" element={<Signup />} /> */}
 
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/password-reset-email-sent" element={<PasswordResetEmailSent />} />
