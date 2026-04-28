@@ -135,6 +135,16 @@ const Login = () => {
             <p className="font-helvetica-neue font-[500] text-base leading-[140%] tracking-[0%] text-center text-[#05131D]">
               If you got your pet tag from a pet event you met us at or pet shop, you still need to order online to activate it. Once you've ordered, you'll get login details via email, just log in and then scan the tag to activate it.
             </p>
+            <div className="flex justify-center">
+              <a
+                href="https://digitaltails.com/order"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-[198px] h-[56px] font-medium border border-[#4CB2E2] bg-[#4CB2E2] text-[#05131D] rounded-lg px-6 py-2.5 transition-colors flex items-center justify-center hover:bg-[#3da1d1]"
+              >
+                Order Now
+              </a>
+            </div>
           </div>
         </div>
       </div>
