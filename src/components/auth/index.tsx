@@ -45,10 +45,15 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full max-w-[650px] space-y-4">
         {/* Header */}
-        <div className="text-start space-y-4">
-          <h1 className="font-helvetica-neue font-medium text-[32px] leading-[100%] text-[#05131D] capitalize">
-            Login Form
-          </h1>
+        <div className="text-start space-y-4 px-2 md:px-8">
+          <a
+            href="https://digitaltails.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block"
+          >
+            <img src="/login.svg" alt="Digital Tails" className="h-auto max-w-[220px]" />
+          </a>
           <p className="font-helvetica-neue font-normal text-base leading-[140%] tracking-[-0.02em] text-[#05131D] capitalize">
             Welcome to Digital Tails 🐾<br />
             Please login to manage your pet's profile. 🐶🐱
@@ -57,10 +62,6 @@ const Login = () => {
 
         {/* Login Form */}
         <div className="bg-white rounded-lg px-2 md:px-8 py-4 md:py-8 space-y-4">
-          <h2 className="font-helvetica-neue font-medium text-2xl leading-[100%] text-center capitalize">
-            Login
-          </h2>
-
           <form className="space-y-6 mb-12" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <label className="block font-helvetica-neue font-normal text-base leading-[100%] tracking-[-0.02em] text-[#05131D]">
@@ -132,7 +133,7 @@ const Login = () => {
           </form>
 
           <div className="text-center space-y-4 !mt-10">
-            <p className="font-helvetica-neue font-[500] text-base leading-[140%] tracking-[0%] text-center text-[#05131D]">
+            <p className="font-helvetica-neue font-[500] text-base leading-[140%] tracking-[0%] text-start text-[#05131D]">
               If you got your pet tag from a pet event you met us at or pet shop, you still need to order online to activate it. Once you've ordered, you'll get login details via email, just log in and then scan the tag to activate it.
             </p>
             <div className="flex justify-center">
