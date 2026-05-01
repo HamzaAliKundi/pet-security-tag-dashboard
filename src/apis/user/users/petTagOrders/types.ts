@@ -11,6 +11,7 @@ export interface PetTagOrderRequest {
   state: string;
   zipCode: string;
   country: string;
+  isDiscount?: boolean;
   isReplacement?: boolean;
 }
 
@@ -32,6 +33,7 @@ export interface PetTagOrderResponse {
     status: string;
     paymentStatus: string;
     paymentIntentId: string;
+    isDiscount?: boolean;
     createdAt: string;
   };
   payment: {
@@ -57,6 +59,7 @@ export interface PetTagOrder {
   status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
   paymentIntentId?: string;
   paymentStatus: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+  isDiscount?: boolean;
   createdAt: string;
   updatedAt: string;
 }
