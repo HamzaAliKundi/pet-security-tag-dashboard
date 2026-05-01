@@ -31,6 +31,7 @@ const PaymentForm = ({
   zipCode, 
   country, 
   countryCode,
+  isDiscount,
   onClose, 
   onSuccess,
   onFormChange,
@@ -49,6 +50,7 @@ const PaymentForm = ({
   zipCode: string;
   country: string;
   countryCode: string;
+  isDiscount: boolean;
   onClose: () => void;
   onSuccess: (orderData: any) => void;
   onFormChange: (field: string, value: string) => void;
@@ -114,7 +116,8 @@ const PaymentForm = ({
         city,
         state,
         zipCode,
-        country
+        country,
+        isDiscount
       }).unwrap();
 
       // Confirm the payment with Stripe
@@ -698,6 +701,7 @@ const Order = () => {
             zipCode={formData.zipCode}
             country={formData.country}
             countryCode={countryCode}
+            isDiscount={isDiscountApplied && isDiscountValid}
             onClose={() => setShowModal(false)}
             onSuccess={handleOrderSuccess}
             onFormChange={handleFormChange}
