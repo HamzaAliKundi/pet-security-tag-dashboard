@@ -3,6 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useConfirmQRSubscriptionPaymentMutation } from '../../apis/user/qrcode';
 import { useLocalization } from '../../context/LocalizationContext';
+import WalletCheckoutSection from '../common/WalletCheckoutSection';
 import toast from 'react-hot-toast';
 
 // Get Stripe publishable key from environment
@@ -37,6 +38,7 @@ const SubscriptionForm: React.FC<{
   const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string>('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [isSubscriptionMode, setIsSubscriptionMode] = useState(false);
+  const [cardReady, setCardReady] = useState(false);
 
   const [confirmQRSubscriptionPayment] = useConfirmQRSubscriptionPaymentMutation();
   const { subscriptionPrices, isLocalizing } = useLocalization();
@@ -112,38 +114,18 @@ const SubscriptionForm: React.FC<{
     }
   };
 
-  const handlePaymentSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!stripe || !elements) {
+  // Everything after a payment method exists. Shared by the card form and Apple Pay so
+  // the two paths cannot drift apart.
+  const processPayment = async (paymentMethodId: string) => {
+    if (!stripe) {
       toast.error('Payment system not ready. Please try again.');
       return;
     }
 
     setLoading(true);
 
-    const cardElement = elements.getElement(CardElement);
-
-    if (!cardElement) {
-      toast.error('Card element not found');
-      setLoading(false);
-      return;
-    }
-
     try {
       if (isSubscriptionMode && (subscriptionType === 'monthly' || subscriptionType === 'yearly')) {
-        // For monthly/yearly: Create payment method first, then create subscription
-        const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
-          type: 'card',
-          card: cardElement,
-        });
-
-        if (pmError || !paymentMethod) {
-          toast.error(pmError?.message || 'Failed to create payment method');
-          setLoading(false);
-          return;
-        }
-
         // Create subscription with payment method
         const selectedPricing = pricing[subscriptionType];
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/qr/verify-subscription`, {
@@ -155,7 +137,7 @@ const SubscriptionForm: React.FC<{
           body: JSON.stringify({
             qrCodeId: qrCode.id,
             subscriptionType,
-            paymentMethodId: paymentMethod.id,
+            paymentMethodId: paymentMethodId,
             enableAutoRenew: true,
             amount: selectedPricing.price,
             currency: selectedPricing.currency.toLowerCase(),
@@ -175,7 +157,7 @@ const SubscriptionForm: React.FC<{
           const { error, paymentIntent } = await stripe.confirmCardPayment(
             clientSecret,
             {
-              payment_method: paymentMethod.id,
+              payment_method: paymentMethodId,
             }
           );
 
@@ -226,9 +208,7 @@ const SubscriptionForm: React.FC<{
         }
 
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-          },
+          payment_method: paymentMethodId,
         });
 
         if (error) {
@@ -257,6 +237,37 @@ const SubscriptionForm: React.FC<{
     }
   };
 
+  const handlePaymentSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      toast.error('Payment system not ready. Please try again.');
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+
+    if (!cardElement) {
+      toast.error('Card element not found');
+      return;
+    }
+
+    setLoading(true);
+
+    const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+    });
+
+    if (pmError || !paymentMethod) {
+      toast.error(pmError?.message || 'Failed to create payment method');
+      setLoading(false);
+      return;
+    }
+
+    await processPayment(paymentMethod.id);
+  };
+
   if (showPaymentForm) {
     return (
       <div className="bg-white p-6">
@@ -278,15 +289,27 @@ const SubscriptionForm: React.FC<{
 
         <form onSubmit={handlePaymentSubmit}>
           <div className="mb-4">
+            <WalletCheckoutSection
+              amount={pricing[subscriptionType].price}
+              currency={pricing[subscriptionType].currency}
+              disabled={loading || isLocalizing}
+              onPaymentMethod={processPayment}
+            />
+
             <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
               Payment Card*
             </label>
-            
+
             {/* Stripe Card Element */}
-            <div className="border border-[#E0E0E0] rounded-[8px] p-3 bg-[#FAFAFA]">
+            <div className="relative border border-[#E0E0E0] rounded-[8px] p-3 bg-[#FAFAFA]">
+              {!cardReady && (
+                <div className="absolute inset-0 rounded-[8px] bg-gray-100 animate-pulse flex items-center gap-2 px-3">
+                  <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-gray-500">Loading secure card field...</span>
+                </div>
+              )}
               <CardElement
-                onReady={() => console.log('CardElement ready')}
-                onChange={(event) => console.log('CardElement changed:', event)}
+                onReady={() => setCardReady(true)}
                 options={{
                   style: {
                     base: {

@@ -8,6 +8,7 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 import { useRenewSubscriptionMutation, useUpgradeSubscriptionMutation, useConfirmSubscriptionPaymentMutation } from '../../apis/user/qrcode';
+import WalletCheckoutSection from '../common/WalletCheckoutSection';
 import toast from 'react-hot-toast';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISH_KEY || '');
@@ -53,10 +54,10 @@ const PaymentForm: React.FC<{
     }
   }, [elements]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!stripe || !elements || !isElementsReady) {
+  // Everything after a payment method exists. Shared by the card form and Apple Pay so
+  // the two paths cannot drift apart.
+  const processPayment = async (paymentMethodId: string) => {
+    if (!stripe) {
       toast.error('Payment form is not ready. Please try again.');
       return;
     }
@@ -64,30 +65,11 @@ const PaymentForm: React.FC<{
     setIsProcessing(true);
 
     try {
-      // Create payment method first (to save card for future use)
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        toast.error('Card element not found');
-        setIsProcessing(false);
-        return;
-      }
-
-      const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-      });
-
-      if (pmError || !paymentMethod) {
-        toast.error(pmError?.message || 'Failed to create payment method');
-        setIsProcessing(false);
-        return;
-      }
-
       // Create payment intent
-      const paymentIntentResponse = action === 'renewal' 
+      const paymentIntentResponse = action === 'renewal'
         ? await renewSubscription({ subscriptionId }).unwrap()
-        : await upgradeSubscription({ 
-            subscriptionId, 
+        : await upgradeSubscription({
+            subscriptionId,
             newType: newType!,
             amount: amount,
             currency: currency.toLowerCase()
@@ -101,7 +83,7 @@ const PaymentForm: React.FC<{
       const { error, paymentIntent } = await stripe.confirmCardPayment(
         paymentIntentResponse.payment.clientSecret,
         {
-          payment_method: paymentMethod.id,
+          payment_method: paymentMethodId,
         }
       );
 
@@ -119,7 +101,7 @@ const PaymentForm: React.FC<{
           newType,
           amount: amount,
           currency: currency.toLowerCase(),
-          paymentMethodId: paymentMethod.id // Pass payment method ID to save card
+          paymentMethodId: paymentMethodId // Pass payment method ID to save card
         }).unwrap();
 
         toast.success(`Subscription ${action} successful!`);
@@ -132,6 +114,37 @@ const PaymentForm: React.FC<{
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || !isElementsReady) {
+      toast.error('Payment form is not ready. Please try again.');
+      return;
+    }
+
+    // Create payment method first (to save card for future use)
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      toast.error('Card element not found');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+    });
+
+    if (pmError || !paymentMethod) {
+      toast.error(pmError?.message || 'Failed to create payment method');
+      setIsProcessing(false);
+      return;
+    }
+
+    await processPayment(paymentMethod.id);
   };
 
   const cardElementOptions = {
@@ -174,6 +187,13 @@ const PaymentForm: React.FC<{
             </div>
           </div>
         </div>
+
+        <WalletCheckoutSection
+          amount={amount}
+          currency={currency}
+          disabled={isProcessing}
+          onPaymentMethod={processPayment}
+        />
 
         <div className="space-y-2">
           <label className="font-afacad font-semibold text-[14px] text-[#222] flex items-center">

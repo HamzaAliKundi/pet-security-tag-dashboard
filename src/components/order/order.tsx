@@ -3,6 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCreatePetTagOrderMutation, useConfirmPaymentMutation, useGetUserPetCountQuery, useGetSingleUserQuery, useValidateDiscountMutation } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
+import WalletCheckoutSection from '../common/WalletCheckoutSection';
 import { useNavigate } from 'react-router-dom';
 import { isUserSettingsComplete } from '../../utils/settingsValidation';
 import toast from 'react-hot-toast';
@@ -61,15 +62,15 @@ const PaymentForm = ({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
-  
+  const [cardReady, setCardReady] = useState(false);
+
   // RTK Query hooks
   const [createPetTagOrder] = useCreatePetTagOrderMutation();
   const [confirmPayment] = useConfirmPaymentMutation();
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    
-    if (!stripe || !elements) {
+  // Everything after a payment method exists. Shared by the card form and Apple Pay.
+  const processPayment = async (paymentMethodId: string) => {
+    if (!stripe) {
       return;
     }
 
@@ -77,18 +78,6 @@ const PaymentForm = ({
     setError('');
 
     try {
-      // Get the payment method from Stripe Elements
-      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardElement)!,
-      });
-
-      if (paymentMethodError) {
-        setError(paymentMethodError.message || 'Payment method creation failed');
-        setIsProcessing(false);
-        return;
-      }
-
       // Combine country code with phone number
       const fullPhoneNumber = `${countryCode}${phone}`;
 
@@ -122,7 +111,7 @@ const PaymentForm = ({
 
       // Confirm the payment with Stripe
       const { error: confirmError } = await stripe.confirmCardPayment(orderResult.payment.clientSecret, {
-        payment_method: paymentMethod.id,
+        payment_method: paymentMethodId,
       });
 
       if (confirmError) {
@@ -146,6 +135,31 @@ const PaymentForm = ({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    // Get the payment method from Stripe Elements
+    const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: elements.getElement(CardElement)!,
+    });
+
+    if (paymentMethodError || !paymentMethod) {
+      setError(paymentMethodError?.message || 'Payment method creation failed');
+      setIsProcessing(false);
+      return;
+    }
+
+    await processPayment(paymentMethod.id);
   };
 
   return (
@@ -325,13 +339,27 @@ const PaymentForm = ({
 
             {/* Payment Card */}
             <div>
+              <WalletCheckoutSection
+                amount={totalCost.amount}
+                currency={totalCost.currency}
+                disabled={isProcessing}
+                onPaymentMethod={processPayment}
+              />
+
               <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
                 Payment Card*
               </label>
-              
+
               {/* Stripe Card Element */}
-              <div className="border border-[#E0E0E0] rounded-[8px] p-3 bg-[#FAFAFA]">
+              <div className="relative border border-[#E0E0E0] rounded-[8px] p-3 bg-[#FAFAFA]">
+                {!cardReady && (
+                  <div className="absolute inset-0 rounded-[8px] bg-gray-100 animate-pulse flex items-center gap-2 px-3">
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-gray-500">Loading secure card field...</span>
+                  </div>
+                )}
                 <CardElement
+                  onReady={() => setCardReady(true)}
                   options={{
                     style: {
                       base: {
