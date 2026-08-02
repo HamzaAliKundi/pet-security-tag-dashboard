@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Package, MapPin, Calendar } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { petsApi } from '../../apis/user/users/pets';
+import { useLocalization } from '../../context/LocalizationContext';
 
 const OrderSummary: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { shippingPrice } = useLocalization();
   const orderData = (location.state as any)?.orderData;
 
   const handleGoToDashboard = () => {
@@ -48,8 +50,11 @@ const OrderSummary: React.FC = () => {
     });
   };
 
+  // Use the same region-detected symbol the order was charged in (£ for UK, $ for
+  // US/Canada). Falls back to £ if detection hasn't resolved.
   const formatCurrency = (amount?: number) => {
-    return `€${parseFloat(String(amount || 0)).toFixed(2)}`;
+    const symbol = shippingPrice?.symbol || '£';
+    return `${symbol}${parseFloat(String(amount || 0)).toFixed(2)}`;
   };
 
   const getColorName = (color?: string) => {

@@ -4,6 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useGetPetQuery } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
+import WalletCheckoutSection from '../common/WalletCheckoutSection';
 
 const TAG_PRICE = 0; // Tags are free
 
@@ -44,11 +45,11 @@ const ReplacementPaymentForm = ({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [cardReady, setCardReady] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    
-    if (!stripe || !elements) {
+  // Everything after a payment method exists. Shared by the card form and Apple Pay.
+  const processPayment = async (paymentMethodId: string) => {
+    if (!stripe) {
       return;
     }
 
@@ -56,18 +57,6 @@ const ReplacementPaymentForm = ({
     setError('');
 
     try {
-      // Get the payment method from Stripe Elements
-      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardElement)!,
-      });
-
-      if (paymentMethodError) {
-        setError(paymentMethodError.message || 'Payment method creation failed');
-        setIsProcessing(false);
-        return;
-      }
-
       // Create replacement order using the new endpoint
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/pets/${petId}/replacement-order`, {
         method: 'POST',
@@ -95,7 +84,7 @@ const ReplacementPaymentForm = ({
 
       // Confirm the payment with Stripe
       const { error: confirmError } = await stripe.confirmCardPayment(orderResult.payment.clientSecret, {
-        payment_method: paymentMethod.id,
+        payment_method: paymentMethodId,
       });
 
       if (confirmError) {
@@ -127,6 +116,31 @@ const ReplacementPaymentForm = ({
       setError(err.message || 'Order failed. Please try again.');
       setIsProcessing(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    // Get the payment method from Stripe Elements
+    const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: elements.getElement(CardElement)!,
+    });
+
+    if (paymentMethodError || !paymentMethod) {
+      setError(paymentMethodError?.message || 'Payment method creation failed');
+      setIsProcessing(false);
+      return;
+    }
+
+    await processPayment(paymentMethod.id);
   };
 
   return (
@@ -249,9 +263,23 @@ const ReplacementPaymentForm = ({
 
         {/* Payment Information */}
         <div>
+          <WalletCheckoutSection
+            amount={totalCost.amount}
+            currency={totalCost.currency}
+            disabled={isProcessing}
+            onPaymentMethod={processPayment}
+          />
+
           <label className="block text-sm font-medium text-gray-700 mb-2">Payment Information</label>
-          <div className="p-3 border border-gray-300 rounded-lg">
+          <div className="relative p-3 border border-gray-300 rounded-lg">
+            {!cardReady && (
+              <div className="absolute inset-0 rounded-lg bg-gray-100 animate-pulse flex items-center gap-2 px-3">
+                <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-gray-500">Loading secure card field...</span>
+              </div>
+            )}
             <CardElement
+              onReady={() => setCardReady(true)}
               options={{
                 style: {
                   base: {
