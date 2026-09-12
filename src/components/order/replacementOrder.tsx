@@ -5,6 +5,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { useGetPetQuery } from '../../apis/user/users';
 import { useLocalization } from '../../context/LocalizationContext';
 import WalletCheckoutSection from '../common/WalletCheckoutSection';
+import { US_STATES, isUsCountry } from '../../constants/usStates';
 
 const TAG_PRICE = 0; // Tags are free
 
@@ -198,6 +199,25 @@ const ReplacementPaymentForm = ({
           />
         </div>
 
+        {/* Country - selected first so the fields below know US vs non-US */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+          <select
+            value={country}
+            onChange={(e) => onFormChange('country', e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          >
+            <option value="" disabled>Select Country</option>
+            <option value="United States">United States</option>
+            <option value="UK">UK</option>
+            <option value="Canada">Canada</option>
+          </select>
+          {!country && (
+            <p className="mt-1 text-xs text-gray-500">Select a country first to enable the fields below</p>
+          )}
+        </div>
+
         {/* Address Fields */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
@@ -205,7 +225,8 @@ const ReplacementPaymentForm = ({
             type="text"
             value={street}
             onChange={(e) => onFormChange('street', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={!country}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder="123 Main Street"
             required
           />
@@ -218,47 +239,52 @@ const ReplacementPaymentForm = ({
               type="text"
               value={city}
               onChange={(e) => onFormChange('city', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!country}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="New York"
               required
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-            <input
-              type="text"
-              value={state}
-              onChange={(e) => onFormChange('state', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="NY"
-              required
-            />
+            {isUsCountry(country) ? (
+              <select
+                value={state}
+                onChange={(e) => onFormChange('state', e.target.value)}
+                disabled={!country}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                required
+              >
+                <option value="" disabled>Select State</option>
+                {US_STATES.map(s => (
+                  <option key={s.code} value={s.code}>{s.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={state}
+                onChange={(e) => onFormChange('state', e.target.value)}
+                disabled={!country}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="NY"
+                required
+              />
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-            <input
-              type="text"
-              value={zipCode}
-              onChange={(e) => onFormChange('zipCode', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="10001"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-            <input
-              type="text"
-              value={country}
-              onChange={(e) => onFormChange('country', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="United States"
-              required
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+          <input
+            type="text"
+            value={zipCode}
+            onChange={(e) => onFormChange('zipCode', e.target.value)}
+            disabled={!country}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            placeholder="10001"
+            required
+          />
         </div>
 
         {/* Payment Information */}
@@ -343,7 +369,10 @@ const ReplacementOrder = () => {
   const handleFormChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
+      // Reset state whenever country changes so a stale value (e.g. a US
+      // state code left over from before switching to UK) can't slip through
+      ...(field === 'country' ? { state: '' } : {})
     }));
   };
 

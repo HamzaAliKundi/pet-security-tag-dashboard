@@ -7,6 +7,7 @@ import WalletCheckoutSection from '../common/WalletCheckoutSection';
 import { useNavigate } from 'react-router-dom';
 import { isUserSettingsComplete } from '../../utils/settingsValidation';
 import toast from 'react-hot-toast';
+import { US_STATES, isUsCountry } from '../../constants/usStates';
 
 // Tag price is now retrieved from LocalizationContext
 
@@ -259,6 +260,27 @@ const PaymentForm = ({
               </div>
             </div>
 
+            {/* Country - selected first so the fields below know US vs non-US */}
+            <div>
+              <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
+                Country*
+              </label>
+              <select
+                value={country}
+                onChange={(e) => onFormChange('country', e.target.value)}
+                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                required
+              >
+                <option value="" disabled>Select Country</option>
+                <option value="United States">United States</option>
+                <option value="UK">UK</option>
+                <option value="Canada">Canada</option>
+              </select>
+              {!country && (
+                <p className="mt-1 text-xs text-[#8A8A8A]">Select a country first to enable the fields below</p>
+              )}
+            </div>
+
             {/* Street Address */}
             <div>
               <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
@@ -269,7 +291,8 @@ const PaymentForm = ({
                 placeholder="Enter street address"
                 value={street}
                 onChange={(e) => onFormChange('street', e.target.value)}
-                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                disabled={!country}
+                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
                 required
               />
             </div>
@@ -285,7 +308,8 @@ const PaymentForm = ({
                   placeholder="Enter city"
                   value={city}
                   onChange={(e) => onFormChange('city', e.target.value)}
-                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                  disabled={!country}
+                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
                   required
                 />
               </div>
@@ -293,48 +317,47 @@ const PaymentForm = ({
                 <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
                   State / County*
                 </label>
-                <input
-                  type="text"
-                  placeholder="Enter state"
-                  value={state}
-                  onChange={(e) => onFormChange('state', e.target.value)}
-                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
-                  required
-                />
+                {isUsCountry(country) ? (
+                  <select
+                    value={state}
+                    onChange={(e) => onFormChange('state', e.target.value)}
+                    disabled={!country}
+                    className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
+                    required
+                  >
+                    <option value="" disabled>Select State</option>
+                    {US_STATES.map(s => (
+                      <option key={s.code} value={s.code}>{s.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Enter state"
+                    value={state}
+                    onChange={(e) => onFormChange('state', e.target.value)}
+                    disabled={!country}
+                    className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
+                    required
+                  />
+                )}
               </div>
             </div>
 
-            {/* Zip Code and Country Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
-                  Zip Code / Postal Code*
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter zip code"
-                  value={zipCode}
-                  onChange={(e) => onFormChange('zipCode', e.target.value)}
-                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
-                  Country*
-                </label>
-                <select
-                  value={country}
-                  onChange={(e) => onFormChange('country', e.target.value)}
-                  className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
-                  required
-                >
-                  <option value="" disabled>Select Country</option>
-                  <option value="United States">United States</option>
-                  <option value="UK">UK</option>
-                  <option value="Canada">Canada</option>
-                </select>
-              </div>
+            {/* Zip Code */}
+            <div>
+              <label className="block font-afacad font-semibold text-[15px] text-[#222] mb-2">
+                Zip Code / Postal Code*
+              </label>
+              <input
+                type="text"
+                placeholder="Enter zip code"
+                value={zipCode}
+                onChange={(e) => onFormChange('zipCode', e.target.value)}
+                disabled={!country}
+                className="w-full rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-4 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
+                required
+              />
             </div>
 
             {/* Payment Card */}
@@ -502,7 +525,10 @@ const Order = () => {
     } else {
       setFormData(prev => ({
         ...prev,
-        [field]: value
+        [field]: value,
+        // Reset state whenever country changes so a stale value (e.g. a US
+        // state code left over from before switching to UK) can't slip through
+        ...(field === 'country' ? { state: '' } : {})
       }));
     }
   };
