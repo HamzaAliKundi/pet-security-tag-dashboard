@@ -16,7 +16,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
   onSelectPlan
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<string>('');
-  const { subscriptionPrices, isLocalizing } = useLocalization();
+  const { subscriptionPrices, isLocalizing, userCountry } = useLocalization();
 
   if (!isOpen) return null;
 
@@ -124,7 +124,7 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
                   {isRecommended && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <span className="bg-[#4CB2E2] text-white px-3 py-1 rounded-full text-xs font-medium">
-                        Most Popular
+                        {plan.type === 'yearly' && userCountry === 'US' ? 'Popular · Limited Offer' : 'Most Popular'}
                       </span>
                     </div>
                   )}
