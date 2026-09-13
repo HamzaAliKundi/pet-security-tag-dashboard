@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { X, Check, Crown, Calendar, Infinity } from 'lucide-react';
 import { useLocalization } from '../../context/LocalizationContext';
 
+// Display-only: the pre-discount US yearly price, shown struck through next to the current $24.99 offer.
+const US_YEARLY_ORIGINAL_PRICE = 39.99;
+
 interface PlanSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -149,6 +152,11 @@ const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
                     </h3>
 
                     <div className="mb-4">
+                      {plan.type === 'yearly' && userCountry === 'US' && !isLocalizing && (
+                        <span className="font-afacad text-[16px] text-[#9CA3AF] line-through mr-2">
+                          {plan.symbol}{US_YEARLY_ORIGINAL_PRICE.toFixed(2)}
+                        </span>
+                      )}
                       <span className="font-afacad font-bold text-[32px] text-[#222]">
                         {isLocalizing ? '...' : `${plan.symbol}${plan.price.toFixed(2)}`}
                       </span>
