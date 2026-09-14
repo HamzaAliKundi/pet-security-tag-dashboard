@@ -426,6 +426,10 @@ const SubscriptionForm: React.FC<{
         </ul>
       </div>
 
+      <p className="text-sm text-gray-500 text-center mb-6">
+        A percentage of all Digital Tails profits is donated to pet charities across the UK, USA, and Canada, helping support animals in need.
+      </p>
+
       <div className="flex justify-between">
         <button
           onClick={onClose}
