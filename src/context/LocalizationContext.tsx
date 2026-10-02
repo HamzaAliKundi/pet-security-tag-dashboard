@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 
 // Shipping prices by country
 const SHIPPING_PRICES: Record<string, { amount: number; currency: string; symbol: string }> = {
-  US: { amount: 9.99, currency: 'USD', symbol: '$' },
+  US: { amount: 4.99, currency: 'USD', symbol: '$' },
   CA: { amount: 16.99, currency: 'CAD', symbol: '$' },
   // European countries
   GB: { amount: 2.99, currency: 'GBP', symbol: '£' },
