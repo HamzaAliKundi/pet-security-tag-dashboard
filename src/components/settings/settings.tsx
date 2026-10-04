@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useGetSingleUserQuery, useUpdateSingleUserMutation, useDeleteAccountMutation } from '../../apis/user/users';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface UserFormData {
   firstName: string;
@@ -20,7 +21,11 @@ const Settings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [countryCode, setCountryCode] = useState('+1');
+  // Only lock the dropdown when the code was auto-filled from IP detection for
+  // a brand-new phone entry — never for a phone number the user already saved.
+  const [isCountryCodeLocked, setIsCountryCodeLocked] = useState(false);
   const navigate = useNavigate();
+  const { userCountry } = useLocalization();
   
   // @ts-ignore
   const { data: userData, isLoading: isLoadingUser, error: userError } = useGetSingleUserQuery();
@@ -68,6 +73,14 @@ const Settings = () => {
         }
       } else {
         setValue('phone', '');
+        // No phone saved yet — default the code from IP-detected country and
+        // lock it, same as the order forms (except GB/US/CA default to +44).
+        if (userCountry === 'US' || userCountry === 'CA') {
+          setCountryCode('+1');
+        } else {
+          setCountryCode('+44');
+        }
+        setIsCountryCodeLocked(true);
       }
       // Set address fields
       setValue('street', userData.user.street || '');
@@ -76,7 +89,7 @@ const Settings = () => {
       setValue('zipCode', userData.user.zipCode || '');
       setValue('country', userData.user.country || '');
     }
-  }, [userData, setValue]);
+  }, [userData, setValue, userCountry]);
 
   const onSubmit = async (data: UserFormData) => {
     try {
@@ -332,17 +345,16 @@ const Settings = () => {
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                disabled={!isEditing}
+                disabled={!isEditing || isCountryCodeLocked}
                 className={`rounded-[8px] border border-[#E0E0E0] px-3 py-3 font-afacad text-[16px] text-[#222] shadow-sm transition focus:outline-none ${
-                  isEditing 
-                    ? 'bg-white focus:border-[#4CB2E2]' 
+                  isEditing && !isCountryCodeLocked
+                    ? 'bg-white focus:border-[#4CB2E2]'
                     : 'bg-[#FAFAFA] cursor-not-allowed'
                 }`}
                 style={{ width: '120px' }}
               >
                <option value="+44">+44 (UK)</option>
-                <option value="+1">+1 (USA)</option>
-                 <option value="+1">+1 (Canada)</option>
+                <option value="+1">+1 (USA / Canada)</option>
               </select>
               <input
                 id="phone"

@@ -63,6 +63,17 @@ const PaymentForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [cardReady, setCardReady] = useState(false);
+  const { userCountry } = useLocalization();
+
+  // Auto-select the phone country code based on IP-detected country, and lock
+  // it so the customer can't pick a mismatched code for their own country.
+  useEffect(() => {
+    if (userCountry === 'GB') {
+      onCountryCodeChange('+44');
+    } else if (userCountry === 'US' || userCountry === 'CA') {
+      onCountryCodeChange('+1');
+    }
+  }, [userCountry]);
 
   // RTK Query hooks
   const [createPetTagOrder] = useCreatePetTagOrderMutation();
@@ -241,12 +252,12 @@ const PaymentForm = ({
                 <select
                   value={countryCode}
                   onChange={(e) => onCountryCodeChange(e.target.value)}
-                  className="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition"
+                  disabled={userCountry === 'GB' || userCountry === 'US' || userCountry === 'CA'}
+                  className="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 font-afacad text-[15px] text-[#222] shadow-sm focus:outline-none focus:border-[#4CB2E2] transition disabled:bg-[#EFEFEF] disabled:cursor-not-allowed"
                   style={{ width: '120px' }}
                 >
                   <option value="+44">+44 (UK)</option>
-                  <option value="+1">+1 (USA)</option>
-                  <option value="+1">+1 (Canada)</option>
+                  <option value="+1">+1 (USA / Canada)</option>
                 </select>
                 <input
                   type="tel"
